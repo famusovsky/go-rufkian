@@ -1,16 +1,20 @@
 package telephonist
 
 import (
+	"github.com/famusovsky/go-rufkian/internal/telephonist/walkietalkie"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	app    *fiber.App
-	logger *zap.Logger
+	app          *fiber.App
+	addr         string
+	logger       *zap.Logger
+	walkieTalkie walkietalkie.IController
 }
 
-func NewServer(logger *zap.Logger) *Server {
+// TODO instead of addr, input a normal config
+func NewServer(logger *zap.Logger, addr string) *Server {
 	return &Server{
 		app: fiber.New(fiber.Config{
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -24,17 +28,18 @@ func NewServer(logger *zap.Logger) *Server {
 				return c.SendStatus(fiber.StatusInternalServerError)
 			},
 		}),
-		logger: logger,
+		addr:         addr,
+		logger:       logger,
+		walkieTalkie: walkietalkie.New(logger),
 	}
 }
 
 func (s *Server) Run() {
-	s.app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello world")
-	})
+	s.app.Post("/", s.Post)
+	s.app.Delete("/", s.Delete)
+	s.app.Get("/ping", s.Ping)
 
-	// TODO input addr
-	if err := s.app.Listen(":8080"); err != nil {
+	if err := s.app.Listen(s.addr); err != nil {
 		s.logger.Fatal("server crash", zap.Error(err))
 	}
 }

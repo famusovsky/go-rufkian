@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/famusovsky/rufkian-backend/internal/telephonist"
-	"github.com/famusovsky/rufkian-backend/pkg/grace"
+	"github.com/famusovsky/go-rufkian/internal/telephonist"
+	"github.com/famusovsky/go-rufkian/pkg/grace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -14,7 +14,8 @@ func main() {
 	logger, _ := logCfg.Build()
 	defer logger.Sync()
 
-	server := telephonist.NewServer(logger)
+	// TODO use config
+	server := telephonist.NewServer(logger, ":8080")
 
 	grace.Handle(server, logger)
 }
