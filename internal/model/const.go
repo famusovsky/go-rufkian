@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrNoHistoryFound = errors.New("NO_HISTORY_FOUND")
+	ErrEmptyDialog    = errors.New("EMPTY_DIALOG")
 )
 
 const (

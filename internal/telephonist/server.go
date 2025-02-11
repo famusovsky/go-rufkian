@@ -3,6 +3,7 @@ package telephonist
 import (
 	"github.com/famusovsky/go-rufkian/internal/telephonist/walkietalkie"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +15,7 @@ type Server struct {
 }
 
 // TODO instead of addr, input a normal config
-func NewServer(logger *zap.Logger, addr string) *Server {
+func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) *Server {
 	return &Server{
 		app: fiber.New(fiber.Config{
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -30,7 +31,7 @@ func NewServer(logger *zap.Logger, addr string) *Server {
 		}),
 		addr:         addr,
 		logger:       logger,
-		walkieTalkie: walkietalkie.New(logger),
+		walkieTalkie: walkietalkie.New(db, logger),
 	}
 }
 

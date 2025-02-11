@@ -1,5 +1,9 @@
 package model
 
+import (
+	"slices"
+)
+
 type Role string
 
 type Message struct {
@@ -17,5 +21,11 @@ func (msg *Message) Empty() bool {
 }
 
 type Messages []Message
+
+func (msgs Messages) Dialog() Messages {
+	return slices.DeleteFunc(msgs, func(msg Message) bool {
+		return msg.Role != UserRole && msg.Role != AssistantRole
+	})
+}
 
 type MistralModel string

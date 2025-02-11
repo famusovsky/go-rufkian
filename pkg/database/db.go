@@ -10,7 +10,7 @@ import (
 
 type Driver string
 
-func Open(driver Driver, dsn string) (*sqlx.DB, error) {
+func Open(driver Driver, dsn string) (sqlx.Ext, error) {
 	dsn = fmt.Sprintf("%s://%s", driver, dsn)
 
 	db, err := sql.Open(string(driver), dsn)

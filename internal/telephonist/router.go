@@ -39,7 +39,7 @@ type deleteRequstPayload struct {
 }
 
 type deleteResponsePayload struct {
-	ID     string `json:"dialog_id,omitempty"`
+	ID     uint64 `json:"dialog_id,omitempty"`
 	Status string `json:"status,omitempty"`
 }
 
