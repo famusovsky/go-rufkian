@@ -8,8 +8,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func Open(driver, dsn string) (*sqlx.DB, error) {
-	db, err := sql.Open(driver, dsn)
+type Driver string
+
+func Open(driver Driver, dsn string) (*sqlx.DB, error) {
+	dsn = fmt.Sprintf("%s://%s", driver, dsn)
+
+	db, err := sql.Open(string(driver), dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -17,13 +21,12 @@ func Open(driver, dsn string) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	return sqlx.NewDb(db, driver), nil
+	return sqlx.NewDb(db, string(driver)), nil
 }
 
-func DsnFromEnv(driver string) string {
+func DsnFromEnv() string {
 	dsn := fmt.Sprintf(
-		"%s://%s:%s@%s:%s/%s",
-		driver,
+		"%s:%s@%s:%s/%s",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
