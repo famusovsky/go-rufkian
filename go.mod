@@ -1,4 +1,4 @@
-module github.com/famusovsky/rufkian-backend
+module github.com/famusovsky/go-rufkian
 
 go 1.23.1
 
