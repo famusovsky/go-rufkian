@@ -26,7 +26,7 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) *Server {
 					zap.Error(err),
 				)
 				// TODO more appropriate error
-				return c.SendStatus(fiber.StatusInternalServerError)
+				return c.SendStatus(fiber.StatusNotFound)
 			},
 		}),
 		addr:         addr,

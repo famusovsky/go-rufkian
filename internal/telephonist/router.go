@@ -1,16 +1,18 @@
 package telephonist
 
 import (
+	"errors"
+
+	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	"go.uber.org/zap"
 )
 
-// FIXME simplify this file, a lot of boilerplate here
-
 type postRequestPayload struct {
-	Key   string `json:"key"`
-	Input string `json:"input"`
+	UserID *uint64 `json:"user_id"`
+	Key    *string `json:"key"`
+	Input  *string `json:"input"`
 }
 
 type postResponsePayload struct {
@@ -20,22 +22,39 @@ type postResponsePayload struct {
 
 func (s *Server) Post(c *fiber.Ctx) error {
 	var payload postRequestPayload
-	if err := c.BodyParser(&payload); err != nil {
-		s.logger.Warn("bad post request", zap.Error(err))
-		return c.JSON(postResponsePayload{
-			Status: utils.StatusMessage(fiber.StatusBadRequest),
-		})
+	err := c.BodyParser(&payload)
+	if err != nil {
+		s.logger.Error("parse post request payload", zap.Error(err), zap.ByteString("payload", c.Body()))
+		err = model.ErrWrongBodyFormat
+	} else {
+		if payload.UserID == nil {
+			err = model.ErrEmptyUserID
+		}
+		if payload.Key == nil {
+			err = errors.Join(err, model.ErrEmptyKey)
+		}
+		if payload.Input == nil {
+			err = errors.Join(err, model.ErrEmptyInput)
+		}
 	}
-	answer := s.walkieTalkie.Talk(payload.Key, payload.Input)
+
+	if err != nil {
+		s.logger.Info("post request payload", zap.Error(err))
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON(postResponsePayload{
+				Status: err.Error(),
+			})
+	}
 
 	return c.JSON(postResponsePayload{
-		Answer: answer,
+		Answer: s.walkieTalkie.Talk(*payload.UserID, *payload.Key, *payload.Input),
 		Status: utils.StatusMessage(fiber.StatusOK),
 	})
 }
 
 type deleteRequstPayload struct {
-	Key string `json:"key"`
+	UserID *uint64 `json:"user_id"`
 }
 
 type deleteResponsePayload struct {
@@ -45,14 +64,23 @@ type deleteResponsePayload struct {
 
 func (s *Server) Delete(c *fiber.Ctx) error {
 	var payload deleteRequstPayload
-	if err := c.BodyParser(&payload); err != nil {
-		s.logger.Warn("bad post request", zap.Error(err))
-		return c.JSON(postResponsePayload{
-			Status: utils.StatusMessage(fiber.StatusBadRequest),
-		})
+	err := c.BodyParser(&payload)
+	if err != nil {
+		err = model.ErrWrongBodyFormat
+	} else if payload.UserID == nil {
+		err = model.ErrEmptyUserID
 	}
 
-	id, err := s.walkieTalkie.Stop(payload.Key)
+	if err != nil {
+		s.logger.Warn("delete request payload", zap.Error(err))
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON(postResponsePayload{
+				Status: err.Error(),
+			})
+	}
+
+	id, err := s.walkieTalkie.Stop(*payload.UserID)
 	if err != nil {
 		return c.JSON(deleteResponsePayload{
 			Status: err.Error(),

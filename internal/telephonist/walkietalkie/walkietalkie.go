@@ -14,7 +14,6 @@ import (
 )
 
 type controller struct {
-	// TODO use some id instead of api key -- it is vastly insecure
 	// FIXME situation when on the several apps same api key is used
 	dialogs  sync.Map
 	dbClient database.IClient
@@ -37,17 +36,17 @@ func New(db sqlx.Ext, logger *zap.Logger) IController {
 	}
 }
 
-func (c *controller) Talk(key string, input string) string {
-	c.logger.Info("talk request", zap.String("key", key), zap.String("input", input))
+func (c *controller) Talk(userID uint64, key, input string) string {
+	c.logger.Info("talk request", zap.Uint64("user_id", userID), zap.String("input", input))
 
 	var messages model.Messages
-	if historyRaw, ok := c.dialogs.Load(key); ok {
+	if historyRaw, ok := c.dialogs.Load(userID); ok {
 		history, _ := historyRaw.(model.Messages)
 		// FIXME this log probably must be simplified -- could be very big
-		c.logger.Info("dialog process history", zap.String("key", key), zap.Any("history", history))
+		c.logger.Info("dialog process history", zap.Uint64("user_id", userID), zap.Any("history", history))
 		messages = history
 	} else {
-		c.logger.Info("create new dialog process", zap.String("key", key))
+		c.logger.Info("create new dialog process", zap.Uint64("user_id", userID))
 		messages = model.Messages{{Role: model.SystemRole, Content: systemContent}}
 	}
 	messages = append(messages, model.Message{Role: model.UserRole, Content: input})
@@ -59,30 +58,30 @@ func (c *controller) Talk(key string, input string) string {
 
 	response, err := c.getMistralResponse(key, request)
 	if err != nil {
-		c.logger.Error("response from mistral", zap.String("key", key), zap.Error(err))
+		c.logger.Error("response from mistral", zap.Uint64("user_id", userID), zap.Error(err))
 		return ""
 	}
 
 	msg := withoutPrefix(response.Message())
 	if msg.Empty() {
-		c.logger.Warn("empty answer from mistral", zap.String("key", key))
+		c.logger.Warn("empty answer from mistral", zap.Uint64("user_id", userID))
 		return ""
 	}
-	c.dialogs.Swap(key, append(messages, msg))
+	c.dialogs.Swap(userID, append(messages, msg))
 
-	c.logger.Info("answer from mistral", zap.String("key", key), zap.String("response", msg.Content))
+	c.logger.Info("answer from mistral", zap.Uint64("user_id", userID), zap.String("response", msg.Content))
 	return msg.Content
 }
 
-func (c *controller) Stop(key string) (uint64, error) {
-	messagesRaw, ok := c.dialogs.LoadAndDelete(key)
+func (c *controller) Stop(userID uint64) (uint64, error) {
+	messagesRaw, ok := c.dialogs.LoadAndDelete(userID)
 	if !ok {
-		c.logger.Warn("delete dialog process", zap.String("key", key), zap.Error(model.ErrNoHistoryFound))
+		c.logger.Warn("delete dialog process", zap.Uint64("user_id", userID), zap.Error(model.ErrNoHistoryFound))
 		return 0, nil
 	}
 
 	messages, _ := messagesRaw.(model.Messages)
-	id, err := c.dbClient.StoreDialog(key, messages)
+	id, err := c.dbClient.StoreDialog(userID, messages)
 
 	return id, err
 }

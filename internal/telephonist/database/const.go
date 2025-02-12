@@ -1,3 +1,3 @@
 package database
 
-const storeDialogQuery = "INSERT INTO dialogs (key, messages) VALUES ($1, $2) RETURNING id;"
+const storeDialogQuery = "INSERT INTO dialogs (user_id, messages) VALUES ($1, $2) RETURNING id;"
