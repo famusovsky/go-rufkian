@@ -95,5 +95,7 @@ func (s *Server) Delete(c *fiber.Ctx) error {
 
 func (s *Server) Ping(c *fiber.Ctx) error {
 	s.logger.Info("ping pong")
-	return c.SendString("pong")
+	return c.JSON(struct {
+		Msg string `json:"message"`
+	}{Msg: "pong"})
 }
