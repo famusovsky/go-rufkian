@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/famusovsky/go-rufkian/internal/telephonist"
+	"github.com/famusovsky/go-rufkian/internal/companion"
 	"github.com/famusovsky/go-rufkian/pkg/database"
 	"github.com/famusovsky/go-rufkian/pkg/grace"
 	"github.com/jmoiron/sqlx"
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// TODO use config instead of addr
-	server := telephonist.NewServer(logger, db, *addr)
+	server := companion.NewServer(logger, db, *addr)
 
 	grace.Handle(server, logger)
 }
