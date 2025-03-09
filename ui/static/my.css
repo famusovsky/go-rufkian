@@ -1,0 +1,93 @@
+* {
+    box-sizing: inherit;
+    font-family: 'Merriweather';
+    color: #000000;
+    font-size: 1rem;
+    margin: 0;
+}
+
+html {
+    background-color: #e7ffff;
+}
+
+html, body {
+    box-sizing: border-box;
+}
+
+body {
+    text-align: left;
+    max-width: 45rem;
+    min-width: 17rem;
+    margin: auto;
+}
+
+main, .pics {
+    border-top: 0.1rem solid #000000;
+    border-bottom: 0.1rem solid #000000;
+    border-left: 0.1rem solid #000000;
+    border-right: 0.1rem solid #000000;
+}
+
+header, footer {
+    text-align: center;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+}
+
+main {
+    background-color: #ffffe6;
+    margin-top: 2vh;
+}
+
+.pics {
+    position: relative;
+    background-size: cover;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    image-rendering: pixelated;
+}
+
+p, h1, h2, h3 {
+    overflow-wrap: break-word;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+}
+
+h3 {
+    font-size: 1.1rem;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto
+}
+
+a {
+    color: inherit;
+    font-size: inherit;
+    font-style: normal;
+    text-decoration-line: underline;
+}
+
+@media (hover: hover) {
+    a:hover {
+        font-style: italic;
+        text-decoration-line: none;
+    }
+}
+
+::selection {
+    background-color: #ebed8d;
+    color: #000000;
+}
