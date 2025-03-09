@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type Server struct {
+type server struct {
 	app          *fiber.App
 	addr         string
 	logger       *zap.Logger
@@ -15,8 +15,8 @@ type Server struct {
 }
 
 // TODO instead of addr, input a normal config
-func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) *Server {
-	return &Server{
+func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
+	return &server{
 		app: fiber.New(fiber.Config{
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
 				logger.Error(
@@ -35,16 +35,14 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) *Server {
 	}
 }
 
-func (s *Server) Run() {
-	s.app.Post("/", s.Post)
-	s.app.Delete("/", s.Delete)
-	s.app.Get("/ping", s.Ping)
+func (s *server) Run() {
+	s.initRouter()
 
 	if err := s.app.Listen(s.addr); err != nil {
 		s.logger.Fatal("server crash", zap.Error(err))
 	}
 }
 
-func (s *Server) Shutdown() {
+func (s *server) Shutdown() {
 	s.app.Shutdown()
 }

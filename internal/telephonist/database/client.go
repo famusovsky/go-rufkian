@@ -26,7 +26,7 @@ func (c client) StoreDialog(userID uint64, messages model.Messages) (uint64, err
 	}
 
 	if c.db == nil {
-		c.logger.Info("attempt to store dialog into nil db", zap.Uint64("user_id", userID), zap.Any("dialog", messages))
+		c.logger.Warn("attempt to store dialog into nil db", zap.Uint64("user_id", userID), zap.Any("dialog", messages))
 		return 0, nil
 	}
 
