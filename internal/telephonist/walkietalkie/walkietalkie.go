@@ -36,54 +36,59 @@ func New(db sqlx.Ext, logger *zap.Logger) IController {
 	}
 }
 
-func (c *controller) Talk(userID uint64, key, input string) string {
-	c.logger.Info("talk request", zap.Uint64("user_id", userID), zap.String("input", input))
+func (c *controller) Talk(userID string, key, input string) string {
+	c.logger.Info("talk request", zap.String("user_id", userID), zap.String("input", input))
 
-	var messages model.Messages
+	var dialog model.Dialog
 	if historyRaw, ok := c.dialogs.Load(userID); ok {
-		history, _ := historyRaw.(model.Messages)
+		history, _ := historyRaw.(model.Dialog)
 		// FIXME this log probably must be simplified -- could be very big
-		c.logger.Info("dialog process history", zap.Uint64("user_id", userID), zap.Any("history", history))
-		messages = history
+		c.logger.Info("dialog process history", zap.String("user_id", userID), zap.Any("history", history))
+		dialog = history
 	} else {
-		c.logger.Info("create new dialog process", zap.Uint64("user_id", userID))
-		messages = model.Messages{{Role: model.SystemRole, Content: systemContent}}
+		c.logger.Info("create new dialog process", zap.String("user_id", userID))
+		dialog = model.Dialog{
+			Messages:  model.Messages{{Role: model.SystemRole, Content: systemContent}},
+			StartTime: time.Now(),
+			UserID:    userID,
+		}
 	}
-	messages = append(messages, model.Message{Role: model.UserRole, Content: input})
+	dialog.Messages = append(dialog.Messages, model.Message{Role: model.UserRole, Content: input})
 
 	request := mistralRequest{
 		Model:    model.MistralSmall,
-		Messages: append(messages, model.Message{Role: model.AssistantRole, Content: prefixContent, Prefix: true}),
+		Messages: append(dialog.Messages, model.Message{Role: model.AssistantRole, Content: prefixContent, Prefix: true}),
 	}
 
 	response, err := c.getMistralResponse(key, request)
 	if err != nil {
-		c.logger.Error("response from mistral", zap.Uint64("user_id", userID), zap.Error(err))
+		c.logger.Error("response from mistral", zap.String("user_id", userID), zap.Error(err))
 		return ""
 	}
 
 	msg := withoutPrefix(response.Message())
 	if msg.Empty() {
-		c.logger.Warn("empty answer from mistral", zap.Uint64("user_id", userID))
+		c.logger.Warn("empty answer from mistral", zap.String("user_id", userID))
 		return ""
 	}
-	c.dialogs.Swap(userID, append(messages, msg))
+	dialog.Messages = append(dialog.Messages, msg)
+	c.dialogs.Swap(userID, dialog)
 
-	c.logger.Info("answer from mistral", zap.Uint64("user_id", userID), zap.String("response", msg.Content))
+	c.logger.Info("answer from mistral", zap.String("user_id", userID), zap.String("response", msg.Content))
 	return msg.Content
 }
 
-func (c *controller) Stop(userID uint64) (uint64, error) {
-	messagesRaw, ok := c.dialogs.LoadAndDelete(userID)
+func (c *controller) Stop(userID string) (string, error) {
+	dialogRaw, ok := c.dialogs.LoadAndDelete(userID)
 	if !ok {
-		c.logger.Warn("delete dialog process", zap.Uint64("user_id", userID), zap.Error(model.ErrNoHistoryFound))
-		return 0, nil
+		c.logger.Warn("delete dialog process", zap.String("user_id", userID), zap.Error(model.ErrNoHistoryFound))
+		return "", nil
 	}
 
-	messages, _ := messagesRaw.(model.Messages)
-	id, err := c.dbClient.StoreDialog(userID, messages)
+	dialog, _ := dialogRaw.(model.Dialog)
+	dialog, err := c.dbClient.StoreDialog(dialog)
 
-	return id, err
+	return dialog.ID, err
 }
 
 type mistralRequest struct {

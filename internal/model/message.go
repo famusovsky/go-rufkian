@@ -2,7 +2,10 @@ package model
 
 import (
 	"slices"
+	"time"
 )
+
+type MistralModel string
 
 type Role string
 
@@ -22,10 +25,17 @@ func (msg *Message) Empty() bool {
 
 type Messages []Message
 
-func (msgs Messages) Dialog() Messages {
+func (msgs Messages) WithoutSystem() Messages {
 	return slices.DeleteFunc(msgs, func(msg Message) bool {
 		return msg.Role != UserRole && msg.Role != AssistantRole
 	})
 }
 
-type MistralModel string
+type Dialog struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"_"`
+	Messages  Messages  `json:"messages"`
+	StartTime time.Time `json:"start_time"`
+}
+
+type Dialogs []Dialog

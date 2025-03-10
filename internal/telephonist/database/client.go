@@ -1,41 +1,59 @@
 package database
 
 import (
+	"errors"
+
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/jmoiron/sqlx"
+	"github.com/valyala/fastjson"
 	"go.uber.org/zap"
 )
 
 type client struct {
-	db     sqlx.Ext
-	logger *zap.Logger
+	db        sqlx.Ext
+	arenaPool *fastjson.ArenaPool
+	logger    *zap.Logger
 }
 
 func NewClient(db sqlx.Ext, logger *zap.Logger) IClient {
 	return client{
-		db:     db,
-		logger: logger,
+		db:        db,
+		arenaPool: &fastjson.ArenaPool{},
+		logger:    logger,
 	}
 }
 
-func (c client) StoreDialog(userID uint64, messages model.Messages) (uint64, error) {
-	messages = messages.Dialog()
-	if len(messages) == 0 {
-		c.logger.Error("store empty dialog", zap.Uint64("user_id", userID))
-		return 0, model.ErrEmptyDialog
-	}
-
+func (c client) StoreDialog(dialog model.Dialog) (model.Dialog, error) {
 	if c.db == nil {
-		c.logger.Warn("attempt to store dialog into nil db", zap.Uint64("user_id", userID), zap.Any("dialog", messages))
-		return 0, nil
+		c.logger.Error("attempt to user empty db")
+		return model.Dialog{}, errors.New("attempt to user empty db")
 	}
 
-	var id uint64
-	if err := c.db.QueryRowx(storeDialogQuery, userID, messages).Scan(&id); err != nil {
-		c.logger.Error("store dialog sql query process", zap.Uint64("user_id", userID), zap.Error(err))
-		return 0, err
+	dialog.Messages = dialog.Messages.WithoutSystem()
+	if len(dialog.Messages) == 0 {
+		c.logger.Error("store empty dialog", zap.String("user_id", dialog.UserID))
+		return model.Dialog{}, model.ErrEmptyDialog
 	}
 
-	c.logger.Info("store dialog", zap.Uint64("user_id", userID), zap.Uint64("id", id))
-	return id, nil
+	arena := c.arenaPool.Get()
+	arr := arena.NewArray()
+	for i, msg := range dialog.Messages {
+		obj := arena.NewObject()
+		obj.Set("role", arena.NewString(string(msg.Role)))
+		obj.Set("content", arena.NewString(msg.Content))
+		arr.SetArrayItem(i, obj)
+	}
+	c.arenaPool.Put(arena)
+
+	// XXX probably must convert messages to text, have to check
+	var id string
+	if err := c.db.QueryRowx(storeDialogQuery, dialog.UserID, dialog.StartTime, arr.MarshalTo(nil)).Scan(&id); err != nil {
+		c.logger.Error("store dialog sql query process", zap.String("user_id", dialog.UserID), zap.Error(err))
+		return model.Dialog{}, err
+	}
+
+	dialog.ID = id
+
+	c.logger.Info("store dialog", zap.String("user_id", dialog.UserID), zap.String("id", id))
+	return dialog, nil
 }

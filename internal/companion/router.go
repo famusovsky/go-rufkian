@@ -10,7 +10,9 @@ func (s *server) initRouter() {
 	auth.Delete("/", s.signOut)
 
 	base := s.app.Group("/", s.checkReg)
-	base.Get("/", s.RenderMainPage)
+	base.Get("/", s.RenderHistoryPage)
+	// FIXME {"error": "parse \"/dialog/%!d(string=1)\": invalid URL escape \"%!d\""}
+	base.Get("/dialog/:id<int>", s.RenderDialogPage)
 	// TODO implement all other routes
 
 	s.app.Get("/hello", s.hello)

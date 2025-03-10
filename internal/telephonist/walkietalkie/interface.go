@@ -1,6 +1,6 @@
 package walkietalkie
 
 type IController interface {
-	Talk(userID uint64, key, input string) (asnwer string)
-	Stop(userID uint64) (id uint64, err error)
+	Talk(userID string, key, input string) (asnwer string)
+	Stop(userID string) (id string, err error)
 }

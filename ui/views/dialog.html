@@ -1,0 +1,18 @@
+<script src="/static/htmx.min.js"></script>
+
+<body>
+    <h2>Dialog {{.startTime}}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Who?</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ unescape .tbody}}
+        </tbody>
+    </table>
+</body>
+    

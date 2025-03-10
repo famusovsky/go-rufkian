@@ -10,7 +10,7 @@ import (
 )
 
 type postRequestPayload struct {
-	UserID *uint64 `json:"user_id"`
+	UserID *string `json:"user_id"`
 	Key    *string `json:"key"`
 	Input  *string `json:"input"`
 }
@@ -54,11 +54,11 @@ func (s *server) Post(c *fiber.Ctx) error {
 }
 
 type deleteRequstPayload struct {
-	UserID *uint64 `json:"user_id"`
+	UserID *string `json:"user_id"`
 }
 
 type deleteResponsePayload struct {
-	ID     uint64 `json:"dialog_id,omitempty"`
+	ID     string `json:"dialog_id,omitempty"`
 	Status string `json:"status,omitempty"`
 }
 
