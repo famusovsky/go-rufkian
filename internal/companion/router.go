@@ -1,20 +1,27 @@
 package companion
 
+import (
+	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
+	"github.com/gofiber/fiber/v2"
+)
+
 func (s *server) initRouter() {
 	s.app.Static("/static", "./ui/static")
+	s.app.Get("favicon.ico", func(c *fiber.Ctx) error {
+		return c.SendFile("ui/static/favicon.ico")
+	})
 
 	auth := s.app.Group("/auth")
-	auth.Get("/", s.RenderAuthPage)
-	auth.Put("/", s.SignIn)
-	auth.Post("/", s.SignUp)
-	auth.Delete("/", s.signOut)
+	auth.Get("/", s.authHandlers.RenderPage)
+	auth.Put("/", s.authHandlers.SignIn)
+	auth.Post("/", s.authHandlers.SignUp)
+	auth.Delete("/", s.authHandlers.SignOut)
 
-	base := s.app.Group("/", s.checkReg)
-	base.Get("/", s.RenderHistoryPage)
-	// FIXME {"error": "parse \"/dialog/%!d(string=1)\": invalid URL escape \"%!d\""}
-	base.Get("/dialog/:id<int>", s.RenderDialogPage)
+	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
+	withUser := withContext.Group("/", middleware.CheckUser())
+
+	withUser.Get("/", s.dialogHandlers.RenderHistoryPage)
+	withUser.Get("/dialog/:id<int>", s.dialogHandlers.RenderPage)
+
 	// TODO implement all other routes
-
-	s.app.Get("/hello", s.hello)
-	s.app.Get("favicon.ico", s.favicon)
 }

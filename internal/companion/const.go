@@ -1,7 +1,3 @@
 package companion
 
-const (
-	cookieName = "rufkian-user-info"
-
-	userIDKey = "__user_id__"
-)
+const cookieName = "rufkian-user-info"

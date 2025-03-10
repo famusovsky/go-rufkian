@@ -41,7 +41,11 @@ func main() {
 	}
 
 	// TODO use config instead of addr
-	server := companion.NewServer(logger, db, *addr)
+	server, err := companion.NewServer(logger, db, *addr)
+	if err != nil {
+		logger.Error("create server", zap.Error(err))
+		return
+	}
 
 	grace.Handle(server, logger)
 }

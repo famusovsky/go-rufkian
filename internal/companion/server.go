@@ -3,7 +3,9 @@ package companion
 import (
 	"html/template"
 
+	"github.com/famusovsky/go-rufkian/internal/companion/auth"
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
+	"github.com/famusovsky/go-rufkian/internal/companion/dialog"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
@@ -12,15 +14,19 @@ import (
 )
 
 type server struct {
-	app           *fiber.App
-	addr          string
+	app  *fiber.App
+	addr string
+
 	logger        *zap.Logger
 	dbClient      database.IClient
 	cookieHandler cookie.IHandler
+
+	dialogHandlers dialogHandlers
+	authHandlers   authHandlers
 }
 
 // TODO instead of addr, input a normal config
-func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
+func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) (IServer, error) {
 	engine := html.New("./ui/views", ".html")
 	engine.AddFunc(
 		"unescape", func(s string) template.HTML {
@@ -28,7 +34,10 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
 		},
 	)
 
-	return &server{
+	dbClient := database.NewClient(db, logger)
+	cookieHandler := cookie.NewHandler(cookieName)
+
+	res := &server{
 		app: fiber.New(fiber.Config{
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
 				logger.Error(
@@ -42,11 +51,21 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
 			},
 			Views: engine,
 		}),
-		dbClient:      database.NewClient(db, logger),
 		addr:          addr,
+		dbClient:      dbClient,
+		cookieHandler: cookieHandler,
 		logger:        logger,
-		cookieHandler: cookie.NewHandler(cookieName),
 	}
+
+	dialogHandlers, err := dialog.NewHandlers(dbClient, logger)
+	if err != nil {
+		return nil, err
+	}
+	res.dialogHandlers = dialogHandlers
+
+	res.authHandlers = auth.NewHandlers(dbClient, cookieHandler, logger)
+
+	return res, nil
 }
 
 func (s *server) Run() {
