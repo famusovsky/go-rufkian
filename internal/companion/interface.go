@@ -19,3 +19,8 @@ type dialogHandlers interface {
 	RenderPage(c *fiber.Ctx) error
 	RenderHistoryPage(c *fiber.Ctx) error
 }
+
+type proxyHandlers interface {
+	Woerter(c *fiber.Ctx) error
+	// ...
+}

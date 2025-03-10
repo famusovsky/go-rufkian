@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
@@ -50,8 +51,19 @@ func (h *handlers) RenderPage(c *fiber.Ctx) error {
 		return render.ErrPage(c, fiber.StatusNotFound, err)
 	}
 
+	type lineView struct {
+		Role  string
+		Words []string
+	}
+
+	res := make([]lineView, len(dialog.Messages))
+	for i, msg := range dialog.Messages {
+		res[i].Role = string(msg.Role)
+		res[i].Words = strings.Fields(msg.Content)
+	}
+
 	var body bytes.Buffer
-	if err := h.tmpl.ExecuteTemplate(&body, tmplDialogName, dialog.Messages); err != nil {
+	if err := h.tmpl.ExecuteTemplate(&body, tmplDialogName, res); err != nil {
 		return render.ErrPage(c, fiber.StatusInternalServerError, errors.Join(errWrap, err))
 	}
 

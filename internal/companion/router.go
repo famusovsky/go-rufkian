@@ -17,6 +17,9 @@ func (s *server) initRouter() {
 	auth.Post("/", s.authHandlers.SignUp)
 	auth.Delete("/", s.authHandlers.SignOut)
 
+	proxy := s.app.Group("/proxy")
+	proxy.Get("/woerter/:q", s.proxyHandlers.Woerter)
+
 	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
 	withUser := withContext.Group("/", middleware.CheckUser())
 
