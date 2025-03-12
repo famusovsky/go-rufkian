@@ -10,7 +10,6 @@ const (
 	tmplDialogName = "tmpl-dialog"
 	// TODO add clear word button
 	tmplDialogText = `<div id="word" style=""></div>
-	<button hx-get="/proxy/woerter/abend" hx-target="#word">TEST</button><br>
 	{{range .}}<tr>
 	<td>{{.Role}}</td>
 	<td>{{range .Words}}<button hx-get="/proxy/woerter/{{.}}" hx-target="#word" hx-swap="innerHTML">{{.}}</button> {{end}}</td>
