@@ -28,6 +28,7 @@ func NewClient(db sqlx.Ext, logger *zap.Logger) IClient {
 
 var errNilDB = errors.New("attempt to use nil db")
 
+// TODO do smth with errors: decide where you should log, and where just return err
 func (c client) AddUser(user model.User) (model.User, error) {
 	if c.db == nil {
 		c.logger.Error("attempt to store user into nil db")
@@ -136,7 +137,10 @@ func (c client) GetUserDialogs(userID string) (model.Dialogs, error) {
 
 	for rows.Next() {
 		var dbDialog dbDialog
-		rows.StructScan(&dbDialog)
+		if err := rows.StructScan(&dbDialog); err != nil {
+			c.logger.Error("scan dialog messages from sql row", zap.String("user_id", userID), zap.String("id", dbDialog.ID))
+			continue
+		}
 		dialog, err := dbDialog.ToModel(c.parserPool)
 		if err != nil {
 			c.logger.Error("parse dialog messages", zap.String("user_id", userID), zap.String("id", dbDialog.ID))
@@ -147,4 +151,60 @@ func (c client) GetUserDialogs(userID string) (model.Dialogs, error) {
 	}
 
 	return dialogs, nil
+}
+
+func (c client) AddWordToUser(userID, word string) error {
+	if c.db == nil {
+		c.logger.Error("attempt to store word into nil db")
+		return errNilDB
+	}
+
+	if _, err := c.db.Exec(addUserWordQuery, userID, word); err != nil {
+		c.logger.Error("store user word sql query process", zap.String("user_id", userID), zap.String("word", word), zap.Error(err))
+		return err
+	}
+
+	c.logger.Info("store user word sql query process", zap.String("user_id", userID), zap.String("word", word))
+	return nil
+}
+
+func (c client) GetUserWords(userID string) ([]string, error) {
+	if c.db == nil {
+		c.logger.Warn("attempt to get user words from nil db")
+		return nil, errNilDB
+	}
+
+	rows, err := c.db.Queryx(getUserWordsQuery, userID)
+	if err != nil {
+		c.logger.Error("get user words sql query process", zap.String("user_id", userID), zap.Error(err))
+		return nil, err
+	}
+
+	var words []string
+	for rows.Next() {
+		var word string
+		if err := rows.Scan(&word); err != nil {
+			c.logger.Error("scan word from sql row", zap.String("user_id", userID), zap.Error(err))
+			continue
+		}
+		words = append(words, word)
+	}
+
+	c.logger.Info("get user words", zap.Any("user_id", userID), zap.Any("words", words))
+	return words, nil
+}
+
+func (c client) DeleteWordFromUser(userID, word string) error {
+	if c.db == nil {
+		c.logger.Error("attempt to delete word from nil db")
+		return errNilDB
+	}
+
+	if _, err := c.db.Exec(deleteWordFromUserQuery, userID, word); err != nil {
+		c.logger.Error("delete user word sql query process", zap.String("user_id", userID), zap.String("word", word), zap.Error(err))
+		return err
+	}
+
+	c.logger.Info("delete user word sql query process", zap.String("user_id", userID), zap.String("word", word))
+	return nil
 }

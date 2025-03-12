@@ -9,4 +9,8 @@ type IClient interface {
 
 	GetDialog(id, userID string) (model.Dialog, error)
 	GetUserDialogs(userID string) (model.Dialogs, error)
+
+	AddWordToUser(userID, word string) error
+	GetUserWords(userID string) ([]string, error)
+	DeleteWordFromUser(userID, word string) error
 }

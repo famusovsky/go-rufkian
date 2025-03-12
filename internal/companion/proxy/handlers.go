@@ -36,6 +36,8 @@ func (h *handlers) Woerter(c *fiber.Ctx) error {
 	}
 
 	if r.IsSuccess() {
+		// TODO add close, addToDictionary/RemoveFromDictionary buttons
+
 		page, err := html.Parse(r.Body)
 		defer r.Body.Close()
 
