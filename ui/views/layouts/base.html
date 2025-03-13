@@ -3,6 +3,8 @@
 <html>
     <head>
         <title>rufkian</title>
+        <link rel="stylesheet" href="/static/my.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather" type="text/css">
     </head>
     <style>
         div { white-space: pre-wrap; }
@@ -10,12 +12,13 @@
     <header>
         <h1>rufkian</h1>
         <nav>
-        <button hx-get="/" hx-target="body">Main screen</button>
+        <button hx-get="/" hx-target="body">История</button>
+        <button hx-get="/dictionary" hx-target="body">Словарь</button>
         </nav>
     </header>
-    <body>
+    <main>
         {{embed}}
-    </body>
+    </main>
     <footer>
         rufkian
     </footer>

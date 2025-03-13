@@ -11,3 +11,9 @@ CREATE TABLE IF NOT EXISTS dialogs (
     messages TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS user_words (
+    user_id INTEGER NOT NULL,
+    word TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)

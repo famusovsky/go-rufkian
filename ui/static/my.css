@@ -21,7 +21,7 @@ body {
     margin: auto;
 }
 
-main, .pics {
+main, button, input, td, th, .pics {
     border-top: 0.1rem solid #000000;
     border-bottom: 0.1rem solid #000000;
     border-left: 0.1rem solid #000000;
@@ -45,6 +45,33 @@ main {
     background-repeat: no-repeat;
     overflow: hidden;
     image-rendering: pixelated;
+}
+
+input {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.9rem;
+}
+
+button {
+  background-color: #ffffe6;;
+  padding: 0.5rem 0.9rem;
+  text-decoration: none;
+  line-height: normal;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}  
+
+td, th {
+    text-align: start;
+    padding: 0.5rem;
+}
+
+th {
+    font-weight: bold;
 }
 
 p, h1, h2, h3 {
@@ -87,7 +114,6 @@ a {
     }
 }
 
-::selection {
+::selection, button:hover, tr:hover {
     background-color: #ebed8d;
-    color: #000000;
 }

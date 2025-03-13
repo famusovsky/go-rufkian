@@ -92,6 +92,6 @@ func (h *handlers) SignOut(c *fiber.Ctx) error {
 	return c.SendString("")
 }
 
-func (h *handlers) RenderPage(c *fiber.Ctx) error {
+func (h *handlers) AuthPage(c *fiber.Ctx) error {
 	return c.Render("auth", fiber.Map{}, "layouts/mini")
 }

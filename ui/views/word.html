@@ -1,0 +1,9 @@
+<script src="/static/htmx.min.js"></script>
+<body>
+    {{if eq .previousPage "" | not}}
+    <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
+    {{end}}
+    <br>
+    <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
+</body>
+    

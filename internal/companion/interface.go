@@ -12,12 +12,17 @@ type authHandlers interface {
 	SignIn(c *fiber.Ctx) error
 	SignOut(c *fiber.Ctx) error
 
-	RenderPage(c *fiber.Ctx) error
+	AuthPage(c *fiber.Ctx) error
 }
 
 type dialogHandlers interface {
-	RenderPage(c *fiber.Ctx) error
-	RenderHistoryPage(c *fiber.Ctx) error
+	DialogPage(c *fiber.Ctx) error
+	HistoryPage(c *fiber.Ctx) error
+}
+
+type dictionaryHandlers interface {
+	DictionaryPage(c *fiber.Ctx) error
+	WordPage(c *fiber.Ctx) error
 }
 
 type proxyHandlers interface {

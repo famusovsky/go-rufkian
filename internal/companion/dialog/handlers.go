@@ -1,9 +1,7 @@
 package dialog
 
 import (
-	"bytes"
 	"errors"
-	"html/template"
 	"strings"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 )
 
 type handlers struct {
-	tmpl     *template.Template
 	dbClient database.IClient
 	logger   *zap.Logger
 }
@@ -23,24 +20,16 @@ type handlers struct {
 func NewHandlers(
 	dbClient database.IClient,
 	logger *zap.Logger,
-) (IHandlers, error) {
+) IHandlers {
 	res := handlers{
-		tmpl:     template.New(""),
 		dbClient: dbClient,
 		logger:   logger,
 	}
 
-	_, historyErr := res.tmpl.New(tmplHistoryName).Parse(tmplHistoryText)
-	_, dialogErr := res.tmpl.New(tmplDialogName).Parse(tmplDialogText)
-
-	if err := errors.Join(historyErr, dialogErr); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
+	return &res
 }
 
-func (h *handlers) RenderPage(c *fiber.Ctx) error {
+func (h *handlers) DialogPage(c *fiber.Ctx) error {
 	errWrap := errors.New("error while getting dialog")
 
 	user, _ := middleware.UserFromCtx(c)
@@ -48,7 +37,7 @@ func (h *handlers) RenderPage(c *fiber.Ctx) error {
 
 	dialog, err := h.dbClient.GetDialog(dialogID, user.ID)
 	if err != nil {
-		return render.ErrPage(c, fiber.StatusNotFound, err)
+		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
 	}
 
 	type lineView struct {
@@ -56,31 +45,33 @@ func (h *handlers) RenderPage(c *fiber.Ctx) error {
 		Words []string
 	}
 
-	res := make([]lineView, len(dialog.Messages))
-	for i, msg := range dialog.Messages {
-		res[i].Role = string(msg.Role)
-		res[i].Words = strings.Fields(msg.Content)
+	dialogView := struct {
+		ID    string
+		Lines []lineView
+	}{
+		ID: dialogID,
 	}
 
-	var body bytes.Buffer
-	if err := h.tmpl.ExecuteTemplate(&body, tmplDialogName, res); err != nil {
-		return render.ErrPage(c, fiber.StatusInternalServerError, errors.Join(errWrap, err))
+	dialogView.Lines = make([]lineView, len(dialog.Messages))
+	for i, msg := range dialog.Messages {
+		dialogView.Lines[i].Role = string(msg.Role)
+		dialogView.Lines[i].Words = strings.Fields(msg.Content)
 	}
 
 	return c.Render("dialog", fiber.Map{
-		"tbody":     body.String(),
+		"dialog":    dialogView,
 		"startTime": dialog.StartTime,
 	}, "layouts/base")
 }
 
-func (h *handlers) RenderHistoryPage(c *fiber.Ctx) error {
+func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	errWrap := errors.New("error while getting user's dialog history")
 
 	user, _ := middleware.UserFromCtx(c)
 
 	dialogs, err := h.dbClient.GetUserDialogs(user.ID)
 	if err != nil {
-		return render.ErrPage(c, fiber.StatusNotFound, err)
+		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
 	}
 
 	type dialogView struct {
@@ -89,24 +80,19 @@ func (h *handlers) RenderHistoryPage(c *fiber.Ctx) error {
 		ID        string
 	}
 
-	res := make([]dialogView, 0, len(dialogs))
+	dialogViews := make([]dialogView, 0, len(dialogs))
 	for _, dialog := range dialogs {
 		if dialog.Messages[0].Empty() {
 			continue
 		}
-		res = append(res, dialogView{
+		dialogViews = append(dialogViews, dialogView{
 			StartTime: dialog.StartTime,
 			FirstLine: dialog.Messages[0].Content,
 			ID:        dialog.ID,
 		})
 	}
 
-	var body bytes.Buffer
-	if err := h.tmpl.ExecuteTemplate(&body, tmplHistoryName, res); err != nil {
-		return render.ErrPage(c, fiber.StatusInternalServerError, errors.Join(errWrap, err))
-	}
-
 	return c.Render("history", fiber.Map{
-		"tbody": body.String(),
+		"dialogs": dialogViews,
 	}, "layouts/base")
 }

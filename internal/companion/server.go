@@ -6,6 +6,7 @@ import (
 	"github.com/famusovsky/go-rufkian/internal/companion/auth"
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/companion/dialog"
+	"github.com/famusovsky/go-rufkian/internal/companion/dictionary"
 	"github.com/famusovsky/go-rufkian/internal/companion/proxy"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
 	"github.com/gofiber/fiber/v2"
@@ -22,9 +23,10 @@ type server struct {
 	dbClient      database.IClient
 	cookieHandler cookie.IHandler
 
-	dialogHandlers dialogHandlers
-	authHandlers   authHandlers
-	proxyHandlers  proxyHandlers
+	dialogHandlers     dialogHandlers
+	authHandlers       authHandlers
+	proxyHandlers      proxyHandlers
+	dictionaryHandlers dictionaryHandlers
 }
 
 // TODO instead of addr, input a normal config
@@ -53,20 +55,15 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) (IServer, error) {
 			},
 			Views: engine,
 		}),
-		addr:          addr,
-		dbClient:      dbClient,
-		cookieHandler: cookieHandler,
-		logger:        logger,
+		addr:               addr,
+		dbClient:           dbClient,
+		cookieHandler:      cookieHandler,
+		logger:             logger,
+		authHandlers:       auth.NewHandlers(dbClient, cookieHandler, logger),
+		dialogHandlers:     dialog.NewHandlers(dbClient, logger),
+		proxyHandlers:      proxy.NewHandlers(logger),
+		dictionaryHandlers: dictionary.NewHandlers(dbClient, logger),
 	}
-
-	dialogHandlers, err := dialog.NewHandlers(dbClient, logger)
-	if err != nil {
-		return nil, err
-	}
-	res.dialogHandlers = dialogHandlers
-
-	res.authHandlers = auth.NewHandlers(dbClient, cookieHandler, logger)
-	res.proxyHandlers = proxy.NewHandlers(logger)
 
 	return res, nil
 }

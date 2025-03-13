@@ -1,20 +1,19 @@
 <script src="/static/htmx.min.js"></script>
 <div id="page">
     <h1>
-        Authentification
+        Авторизация
     </h1>
     <body>
         <p hx-include="find input">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-            <br>
-            <button hx-post="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Sign Up</button>
-            <button hx-put="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Sign In</button>
+            <label for="email">Электронная почта</label>
+            <br><input type="email" id="email" name="email" required>
+            <br><label for="password">Пароль</label>
+            <br><input type="password" id="password" name="password" required>
+            <br><br>
+            <button hx-post="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Зарегистрироваться</button>
+            <button hx-put="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Войти</button>
             <br>
             <div id="result"></div>
         </p>
     </body>
-    
 </div>
