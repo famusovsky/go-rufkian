@@ -27,7 +27,8 @@ func (s *server) initRouter() {
 	withUser.Get("/", s.dialogHandlers.HistoryPage)
 	withUser.Get("/dialog/:id<int>", s.dialogHandlers.DialogPage)
 	withUser.Get("/dictionary", s.dictionaryHandlers.DictionaryPage)
-	withUser.Get("/dictionary/word/:word<string>", s.dictionaryHandlers.WordPage)
-
-	// TODO implement all other routes
+	// TODO save word in context (or make add/delete better)
+	withUser.Post("/dictionary/:word<string>", s.dictionaryHandlers.AddWord, s.dictionaryHandlers.WordPage)
+	withUser.Delete("/dictionary/:word<string>", s.dictionaryHandlers.DeleteWord, s.dictionaryHandlers.WordPage)
+	withUser.Get("/dictionary/:word<string>", s.dictionaryHandlers.WordPage)
 }

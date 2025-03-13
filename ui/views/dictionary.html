@@ -4,7 +4,7 @@
     <table>
         <tbody>
             {{range .words}}
-                <tr hx-get="/dictionary/word/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dictionary"}'>
+                <tr hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dictionary"}'>
 	                <td>{{.}}</td>
                 </tr>
             {{end}}

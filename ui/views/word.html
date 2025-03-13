@@ -3,6 +3,14 @@
     {{if eq .previousPage "" | not}}
     <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
     {{end}}
+    <!-- TODO if the word is not on woerter do not show buttons and show err -->
+    <!-- TODO make normal toggle -->
+    {{if .inDictionary}}
+    <button hx-delete="/dictionary/{{.word}}" hx-target="body">Удалить из словаря</button>
+    {{else}}
+    <button hx-post="/dictionary/{{.word}}" hx-target="body">Добавить в словарь</button>
+    {{end}}
+    <div id="result"></div>
     <br>
     <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
 </body>

@@ -194,6 +194,21 @@ func (c client) GetUserWords(userID string) ([]string, error) {
 	return words, nil
 }
 
+func (c client) CheckUserWord(userID string, word string) (bool, error) {
+	if c.db == nil {
+		c.logger.Warn("attempt to check user word from nil db")
+		return false, errNilDB
+	}
+
+	var relationExists bool
+	if err := c.db.QueryRowx(checkUserWordQuery, userID, word).Scan(&relationExists); err != nil {
+		c.logger.Error("check user word sql query process", zap.String("user_id", userID), zap.String("word", word))
+		return false, err
+	}
+
+	return relationExists, nil
+}
+
 func (c client) DeleteWordFromUser(userID, word string) error {
 	if c.db == nil {
 		c.logger.Error("attempt to delete word from nil db")

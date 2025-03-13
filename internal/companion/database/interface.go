@@ -12,5 +12,6 @@ type IClient interface {
 
 	AddWordToUser(userID, word string) error
 	GetUserWords(userID string) ([]string, error)
+	CheckUserWord(userID string, word string) (bool, error)
 	DeleteWordFromUser(userID, word string) error
 }

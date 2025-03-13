@@ -21,6 +21,9 @@ type dialogHandlers interface {
 }
 
 type dictionaryHandlers interface {
+	AddWord(c *fiber.Ctx) error
+	DeleteWord(c *fiber.Ctx) error
+
 	DictionaryPage(c *fiber.Ctx) error
 	WordPage(c *fiber.Ctx) error
 }

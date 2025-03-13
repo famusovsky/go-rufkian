@@ -17,5 +17,6 @@ const (
 const (
 	addUserWordQuery        = `INSERT INTO user_words (user_id, word) VALUES ($1, $2);`
 	getUserWordsQuery       = `SELECT word FROM user_words WHERE user_id = $1;`
+	checkUserWordQuery      = `SELECT COUNT(*) > 0 FROM user_words WHERE user_id = $1 AND word = $2;`
 	deleteWordFromUserQuery = `DELETE FROM user_words WHERE user_id = $1 AND word = $2;`
 )
