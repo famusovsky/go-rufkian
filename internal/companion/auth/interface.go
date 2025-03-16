@@ -8,6 +8,7 @@ type IHandlers interface {
 	SignUp(c *fiber.Ctx) error
 	SignIn(c *fiber.Ctx) error
 	SignOut(c *fiber.Ctx) error
+	UserInfo(c *fiber.Ctx) error
 
 	AuthPage(c *fiber.Ctx) error
 }

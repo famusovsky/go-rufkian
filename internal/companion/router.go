@@ -17,6 +17,7 @@ func (s *server) initRouter() {
 	auth.Put("/", s.authHandlers.SignIn)
 	auth.Post("/", s.authHandlers.SignUp)
 	auth.Delete("/", s.authHandlers.SignOut)
+	auth.Get("/user", s.authHandlers.UserInfo)
 
 	proxy := s.app.Group("/proxy")
 	proxy.Get("/woerter/:q<string>", s.proxyHandlers.Woerter)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
+	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
 	"github.com/famusovsky/go-rufkian/internal/companion/render"
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
@@ -57,7 +58,7 @@ func (h *handlers) SignUp(c *fiber.Ctx) error {
 		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("add user in db: %w", err)))
 	}
 
-	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), UserKey, user.ID)
+	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), model.UserKey, user.ID)
 
 	h.logger.Info("user signed up", zap.String("user", user.ID))
 
@@ -77,7 +78,7 @@ func (h *handlers) SignIn(c *fiber.Ctx) error {
 		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("get user from db by email: %w", err)))
 	}
 
-	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), UserKey, user.ID)
+	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), model.UserKey, user.ID)
 
 	h.logger.Info("user signed in", zap.String("user_id", user.ID))
 
@@ -90,6 +91,15 @@ func (h *handlers) SignOut(c *fiber.Ctx) error {
 
 	c.Set("HX-Refresh", "true")
 	return c.SendString("")
+}
+
+func (h *handlers) UserInfo(c *fiber.Ctx) error {
+	user, ok := middleware.UserFromCtx(c)
+	if !ok {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	return c.JSON(user)
 }
 
 func (h *handlers) AuthPage(c *fiber.Ctx) error {

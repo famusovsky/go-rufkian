@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/famusovsky/go-rufkian/internal/companion/auth"
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
@@ -68,7 +67,7 @@ func getUser(r *http.Request, cookieHandler cookie.IHandler, dbClient database.I
 		return model.User{}, fmt.Errorf("read cookie: %w", err)
 	}
 
-	userID, ok := valueMap[auth.UserKey]
+	userID, ok := valueMap[model.UserKey]
 	if !ok {
 		return model.User{}, fmt.Errorf("cookie has not user_id")
 	}
