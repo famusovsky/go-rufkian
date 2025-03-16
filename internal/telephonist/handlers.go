@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type postRequestPayload struct {
+type requestPayload struct {
 	UserID *string `json:"user_id"`
 	Key    *string `json:"key"`
 	Input  *string `json:"input"`
@@ -21,7 +21,7 @@ type postResponsePayload struct {
 }
 
 func (s *server) Post(c *fiber.Ctx) error {
-	var payload postRequestPayload
+	var payload requestPayload
 	err := c.BodyParser(&payload)
 	if err != nil {
 		s.logger.Error("parse post request payload", zap.Error(err), zap.ByteString("payload", c.Body()))
@@ -53,22 +53,23 @@ func (s *server) Post(c *fiber.Ctx) error {
 	})
 }
 
-type deleteRequstPayload struct {
-	UserID *string `json:"user_id"`
-}
-
 type deleteResponsePayload struct {
 	ID     string `json:"dialog_id,omitempty"`
 	Status string `json:"status,omitempty"`
 }
 
 func (s *server) Delete(c *fiber.Ctx) error {
-	var payload deleteRequstPayload
+	var payload requestPayload
 	err := c.BodyParser(&payload)
 	if err != nil {
 		err = model.ErrWrongBodyFormat
-	} else if payload.UserID == nil {
-		err = model.ErrEmptyUserID
+	} else {
+		if payload.Key == nil {
+			err = errors.Join(err, model.ErrEmptyKey)
+		}
+		if payload.UserID == nil {
+			err = model.ErrEmptyUserID
+		}
 	}
 
 	if err != nil {
@@ -80,7 +81,7 @@ func (s *server) Delete(c *fiber.Ctx) error {
 			})
 	}
 
-	id, err := s.walkieTalkie.Stop(*payload.UserID)
+	id, err := s.walkieTalkie.Stop(*payload.UserID, *payload.Key)
 	if err != nil {
 		return c.JSON(deleteResponsePayload{
 			Status: err.Error(),

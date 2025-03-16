@@ -41,6 +41,9 @@ func (c client) StoreDialog(dialog model.Dialog) (model.Dialog, error) {
 		obj := arena.NewObject()
 		obj.Set("role", arena.NewString(string(msg.Role)))
 		obj.Set("content", arena.NewString(msg.Content))
+		if msg.Translation != nil {
+			obj.Set("translation", arena.NewString(*msg.Translation))
+		}
 		arr.SetArrayItem(i, obj)
 	}
 	c.arenaPool.Put(arena)

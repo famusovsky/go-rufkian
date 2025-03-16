@@ -23,12 +23,18 @@ func (s *server) initRouter() {
 
 	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
 	withUser := withContext.Group("/", middleware.CheckUser())
-
+	// TODO main page
 	withUser.Get("/", s.dialogHandlers.HistoryPage)
-	withUser.Get("/dialog/:id<int>", s.dialogHandlers.DialogPage)
-	withUser.Get("/dictionary", s.dictionaryHandlers.DictionaryPage)
+
+	dialog := withUser.Group("/dialog")
+	dialog.Get("/", s.dialogHandlers.HistoryPage)
+	dialog.Get("/:id<int>", s.dialogHandlers.DialogPage)
+
+	dictionary := withUser.Group("/dictionary")
+	dictionary.Get("/", s.dictionaryHandlers.DictionaryPage)
 	// TODO save word in context (or make add/delete better)
-	withUser.Post("/dictionary/:word<string>", s.dictionaryHandlers.AddWord, s.dictionaryHandlers.WordPage)
-	withUser.Delete("/dictionary/:word<string>", s.dictionaryHandlers.DeleteWord, s.dictionaryHandlers.WordPage)
-	withUser.Get("/dictionary/:word<string>", s.dictionaryHandlers.WordPage)
+	word := dictionary.Group("/:word<string>")
+	word.Get("/", s.dictionaryHandlers.WordPage)
+	word.Post("/", s.dictionaryHandlers.AddWord, s.dictionaryHandlers.WordPage)
+	word.Delete("/", s.dictionaryHandlers.DeleteWord, s.dictionaryHandlers.WordPage)
 }

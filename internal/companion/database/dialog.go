@@ -33,6 +33,10 @@ func (dbDialog *dbDialog) ToModel(pool *fastjson.ParserPool) (model.Dialog, erro
 		var msg model.Message
 		msg.Role = model.Role(rawMessage.GetStringBytes("role"))
 		msg.Content = string(rawMessage.GetStringBytes("content"))
+		if translation := rawMessage.GetStringBytes("translation"); translation != nil {
+			translationString := string(translation)
+			msg.Translation = &translationString
+		}
 		messages = append(messages, msg)
 	}
 

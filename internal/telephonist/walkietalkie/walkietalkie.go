@@ -48,7 +48,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 	} else {
 		c.logger.Info("create new dialog process", zap.String("user_id", userID))
 		dialog = model.Dialog{
-			Messages:  model.Messages{{Role: model.SystemRole, Content: systemContent}},
+			Messages:  model.Messages{{Role: model.SystemRole, Content: chatSystemContent}},
 			StartTime: time.Now(),
 			UserID:    userID,
 		}
@@ -57,7 +57,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 
 	request := mistralRequest{
 		Model:    model.MistralSmall,
-		Messages: append(dialog.Messages, model.Message{Role: model.AssistantRole, Content: prefixContent, Prefix: true}),
+		Messages: append(dialog.Messages, model.Message{Role: model.AssistantRole, Content: chatPrefixContent, Prefix: true}),
 	}
 
 	response, err := c.getMistralResponse(key, request)
@@ -66,7 +66,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 		return ""
 	}
 
-	msg := withoutPrefix(response.Message())
+	msg := withoutChatPrefix(response.Message())
 	if msg.Empty() {
 		c.logger.Warn("empty answer from mistral", zap.String("user_id", userID))
 		return ""
@@ -78,7 +78,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 	return msg.Content
 }
 
-func (c *controller) Stop(userID string) (string, error) {
+func (c *controller) Stop(userID, key string) (string, error) {
 	dialogRaw, ok := c.dialogs.LoadAndDelete(userID)
 	if !ok {
 		c.logger.Warn("delete dialog process", zap.String("user_id", userID), zap.Error(model.ErrNoHistoryFound))
@@ -87,6 +87,15 @@ func (c *controller) Stop(userID string) (string, error) {
 
 	dialog, _ := dialogRaw.(model.Dialog)
 	dialog, err := c.dbClient.StoreDialog(dialog)
+
+	go func() {
+		dialog := dialog
+		c.getTranslation(key, &dialog)
+		dialog, err := c.dbClient.StoreDialog(dialog)
+		if err != nil {
+			c.logger.Error("store dialog translation", zap.String("dialog_id", dialog.ID), zap.Error(err))
+		}
+	}()
 
 	return dialog.ID, err
 }
@@ -118,6 +127,32 @@ func (mr mistralResponce) Message() model.Message {
 	return model.Message{}
 }
 
+func (c *controller) getTranslation(key string, dialog *model.Dialog) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(dialog.Messages))
+	for i, msg := range dialog.Messages {
+		go func() {
+			defer wg.Done()
+			req := mistralRequest{
+				Model: model.MistralSmall,
+				Messages: model.Messages{
+					model.Message{Role: model.SystemRole, Content: translationSystemContent},
+					model.Message{Role: model.UserRole, Content: msg.Content},
+					model.Message{Role: model.AssistantRole, Content: translationPrefixContent, Prefix: true},
+				},
+			}
+			responce, err := c.getMistralResponse(key, req)
+			if err != nil {
+				c.logger.Error("translate message", zap.Error(err), zap.String("message", msg.Content))
+				return
+			}
+			translation := withoutTranslationPrefix(responce.Message()).Content
+			dialog.Messages[i].Translation = &translation
+		}()
+	}
+	wg.Wait()
+}
+
 func (c *controller) getMistralResponse(key string, payload mistralRequest) (mistralResponce, error) {
 	req := c.client.R().
 		SetContentType("application/json").
@@ -138,10 +173,19 @@ func (c *controller) getMistralResponse(key string, payload mistralRequest) (mis
 	return ret, nil
 }
 
-func withoutPrefix(msg model.Message) model.Message {
+func withoutChatPrefix(msg model.Message) model.Message {
 	msg.Prefix = false
 	if len(msg.Content) > 0 && msg.Role == model.AssistantRole {
-		withoutPrefix := msg.Content[len(prefixContent):]
+		withoutPrefix := msg.Content[len(chatPrefixContent):]
+		msg.Content = strings.TrimSpace(withoutPrefix)
+	}
+	return msg
+}
+
+func withoutTranslationPrefix(msg model.Message) model.Message {
+	msg.Prefix = false
+	if len(msg.Content) > 0 && msg.Role == model.AssistantRole {
+		withoutPrefix := msg.Content[len(translationPrefixContent):]
 		msg.Content = strings.TrimSpace(withoutPrefix)
 	}
 	return msg

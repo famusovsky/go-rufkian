@@ -10,10 +10,10 @@ type MistralModel string
 type Role string
 
 type Message struct {
-	Role    Role   `json:"role"`
-	Content string `json:"content"`
-	Prefix  bool   `json:"prefix,omitempty"`
-	// TODO tool_calls
+	Role        Role    `json:"role"`
+	Content     string  `json:"content"`
+	Translation *string `json:"translation,omitempty"`
+	Prefix      bool    `json:"prefix,omitempty"`
 }
 
 func (msg *Message) Empty() bool {

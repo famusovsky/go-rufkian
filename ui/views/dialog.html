@@ -5,6 +5,9 @@
         <tbody>
             {{with .dialog}}
             {{$id := .ID}}
+            {{if not .Translated}}
+            <div hx-get="/dialog/{{$id}}" hx-trigger="every 20s" hx-target="body"></div>
+            {{end}}
             {{range $line := .Lines}}
                 <tr>
 	                <td>
@@ -14,14 +17,22 @@
 		                Вы
 	                {{end}}
 	                </td>
-	                <td>
-		            {{range $line.Words}}
-		                <button hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dialog/{{$id}}"}'>
-			                {{.}}
-		                </button>
-		            {{end}}
-	                </td>
+	                <td>	
+					{{range $line.Words}}
+						<button hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dialog/{{$id}}"}'>
+						{{.}}
+						</button>
+					{{end}}
+					</td>
+				</tr>
+				{{if eq $line.Translation nil | not}}
+				<tr>
+					<td></td>
+					<td style="font-style: italic;">
+					{{$line.Translation}}
+					</td>
                 </tr>
+				{{end}}
             {{end}}
             {{end}}
         </tbody>

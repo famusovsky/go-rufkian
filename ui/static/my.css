@@ -117,3 +117,7 @@ a {
 ::selection, button:hover, tr:hover {
     background-color: #ebed8d;
 }
+
+[hidden] {
+    display: none !important;
+}

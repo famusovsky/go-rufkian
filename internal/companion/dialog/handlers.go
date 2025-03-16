@@ -41,21 +41,28 @@ func (h *handlers) DialogPage(c *fiber.Ctx) error {
 	}
 
 	type lineView struct {
-		Role  string
-		Words []string
+		Role        string
+		Words       []string
+		Translation *string
 	}
 
 	dialogView := struct {
-		ID    string
-		Lines []lineView
+		ID         string
+		Translated bool
+		Lines      []lineView
 	}{
-		ID: dialogID,
+		ID:         dialogID,
+		Translated: true,
 	}
 
 	dialogView.Lines = make([]lineView, len(dialog.Messages))
 	for i, msg := range dialog.Messages {
 		dialogView.Lines[i].Role = string(msg.Role)
 		dialogView.Lines[i].Words = strings.Fields(msg.Content)
+		dialogView.Lines[i].Translation = msg.Translation
+		if msg.Translation == nil {
+			dialogView.Translated = false
+		}
 	}
 
 	return c.Render("dialog", fiber.Map{
