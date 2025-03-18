@@ -46,10 +46,10 @@ func (c *cookieHandler) Set(a adder, expireDate time.Time, keyValue ...string) e
 	}
 
 	cookie := &http.Cookie{
-		Name:    c.cookieName,
-		Value:   encodedCookieValue,
-		Path:    "/",
-		Secure:  true,
+		Name:  c.cookieName,
+		Value: encodedCookieValue,
+		Path:  "/",
+		// Secure:  true, // TODO return after release
 		Expires: expireDate,
 	}
 

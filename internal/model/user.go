@@ -4,7 +4,7 @@ type User struct {
 	ID       string `json:"id" db:"id"`
 	Key      string `json:"key" db:"key"`
 	Email    string `json:"email" db:"email"`
-	Password string `json:"_" db:"password"`
+	Password string `json:"-" db:"password"`
 }
 
 const (
