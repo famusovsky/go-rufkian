@@ -7,7 +7,6 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
-	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
 	"github.com/famusovsky/go-rufkian/internal/companion/render"
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
@@ -16,9 +15,8 @@ import (
 )
 
 var (
-	errWrap = errors.New("sign up user handler: %w")
-	day     = 24 * time.Hour
-	week    = 7 * day
+	day  = 24 * time.Hour
+	week = 7 * day
 )
 
 type handlers struct {
@@ -42,20 +40,25 @@ func NewHandlers(
 // TODO unite signup and signing
 
 func (h *handlers) SignUp(c *fiber.Ctx) error {
+	errWrap := errors.New("sign up user: %w")
 	c.Accepts("json")
 	var user model.User
 
 	if err := c.BodyParser(&user); err != nil {
-		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("parse request body to user: %w", err)))
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("parse request body to user: %w", err)))
 	}
 
 	if err := checkmail.ValidateFormat(user.Email); err != nil {
-		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("validate email: %w", err)))
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("validate email: %w", err)))
+	}
+
+	if len(user.Password) < 8 {
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("пароль должен быть длиннее 8 строк")))
 	}
 
 	user, err := h.dbClient.AddUser(user)
 	if err != nil {
-		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("add user in db: %w", err)))
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("add user in db: %w", err)))
 	}
 
 	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), model.UserKey, user.ID)
@@ -67,15 +70,15 @@ func (h *handlers) SignUp(c *fiber.Ctx) error {
 }
 
 func (h *handlers) SignIn(c *fiber.Ctx) error {
-	errWrap := errors.New("error while signing in user in api")
+	errWrap := errors.New("sign in user")
 	var user model.User
 	if err := c.BodyParser(&user); err != nil || user.Email == "" || user.Password == "" {
-		return render.ErrToResult(c, errors.Join(errWrap, errors.Join(errWrap, fmt.Errorf(`request's body is wrong`))))
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("request's body is wrong")))
 	}
 
 	user, err := h.dbClient.GetUserByCredentials(user)
 	if err != nil {
-		return render.ErrToResult(c, errors.Join(errWrap, fmt.Errorf("get user from db by email: %w", err)))
+		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("get user from db by email: %w", err)))
 	}
 
 	h.cookieHandler.Set(&c.Response().Header, time.Now().Add(week), model.UserKey, user.ID)
@@ -91,15 +94,6 @@ func (h *handlers) SignOut(c *fiber.Ctx) error {
 
 	c.Set("HX-Refresh", "true")
 	return c.SendString("")
-}
-
-func (h *handlers) UserInfo(c *fiber.Ctx) error {
-	user, ok := middleware.UserFromCtx(c)
-	if !ok {
-		return c.SendStatus(fiber.StatusUnauthorized)
-	}
-
-	return c.JSON(user)
 }
 
 func (h *handlers) AuthPage(c *fiber.Ctx) error {

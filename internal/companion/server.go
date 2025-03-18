@@ -8,6 +8,7 @@ import (
 	"github.com/famusovsky/go-rufkian/internal/companion/dialog"
 	"github.com/famusovsky/go-rufkian/internal/companion/dictionary"
 	"github.com/famusovsky/go-rufkian/internal/companion/proxy"
+	"github.com/famusovsky/go-rufkian/internal/companion/user"
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
@@ -27,6 +28,7 @@ type server struct {
 	authHandlers       authHandlers
 	proxyHandlers      proxyHandlers
 	dictionaryHandlers dictionaryHandlers
+	userHandlers       userHandlers
 }
 
 // TODO instead of addr, input a normal config
@@ -63,6 +65,7 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) (IServer, error) {
 		dialogHandlers:     dialog.NewHandlers(dbClient, logger),
 		proxyHandlers:      proxy.NewHandlers(logger),
 		dictionaryHandlers: dictionary.NewHandlers(dbClient, logger),
+		userHandlers:       user.NewHandlers(dbClient, logger),
 	}
 
 	return res, nil

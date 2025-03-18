@@ -23,7 +23,11 @@ func (s *server) initRouter() {
 
 	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
 	withUser := withContext.Group("/", middleware.CheckUser())
-	withUser.Get("/auth/user", s.authHandlers.UserInfo)
+
+	user := withUser.Group("/user")
+	user.Put("/", s.userHandlers.Update)
+	user.Get("/", s.userHandlers.GetInfo)
+	user.Get("/settings", s.userHandlers.SettingsPage)
 	// TODO main page
 
 	withUser.Get("/", s.dialogHandlers.HistoryPage)

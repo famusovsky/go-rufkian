@@ -11,7 +11,6 @@ type authHandlers interface {
 	SignUp(c *fiber.Ctx) error
 	SignIn(c *fiber.Ctx) error
 	SignOut(c *fiber.Ctx) error
-	UserInfo(c *fiber.Ctx) error
 
 	AuthPage(c *fiber.Ctx) error
 }
@@ -32,4 +31,10 @@ type dictionaryHandlers interface {
 type proxyHandlers interface {
 	Woerter(c *fiber.Ctx) error
 	// ...
+}
+
+type userHandlers interface {
+	GetInfo(c *fiber.Ctx) error
+	Update(c *fiber.Ctx) error
+	SettingsPage(c *fiber.Ctx) error
 }

@@ -52,6 +52,28 @@ func (c client) AddUser(user model.User) (model.User, error) {
 	return user, nil
 }
 
+func (c client) UpdateUser(user model.User) error {
+	if c.db == nil {
+		c.logger.Error("attempt to update user in nil db")
+		return errNilDB
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
+	if err != nil {
+		c.logger.Error("generate hashed password", zap.Error(err))
+		return err
+	}
+	user.Password = string(hashedPassword)
+
+	if _, err := c.db.Exec(updateUserQuery, user.ID, user.Email, user.Password, user.Key); err != nil {
+		c.logger.Error("update user sql query process", zap.Any("user", user), zap.Error(err))
+		return err
+	}
+
+	c.logger.Info("update user", zap.Any("user", user))
+	return nil
+}
+
 func (c client) GetUser(id string) (model.User, error) {
 	if c.db == nil {
 		c.logger.Warn("attempt to get user from nil db")
