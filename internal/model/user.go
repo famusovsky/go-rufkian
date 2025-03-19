@@ -1,11 +1,22 @@
 package model
 
 type User struct {
-	ID        string `json:"id" db:"id"`
-	Key       string `json:"key" db:"key"`
-	Email     string `json:"email" db:"email"`
-	Password  string `json:"-" db:"password"`
-	TimeGoalM int    `json:"-" db:"time_goal_m"`
+	ID        string  `json:"id" db:"id"`
+	Email     string  `json:"email" db:"email"`
+	Password  string  `json:"-" db:"password"`
+	Key       *string `json:"key" db:"key"`
+	TimeGoalM *int    `json:"-" db:"time_goal_m"`
+}
+
+func (u User) HasKey() bool {
+	if u.Key == nil {
+		return false
+	}
+	return len(*u.Key) > 0
+}
+
+func (u User) HasTimeGoal() bool {
+	return u.TimeGoalM != nil
 }
 
 const (

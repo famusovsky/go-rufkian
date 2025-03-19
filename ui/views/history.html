@@ -3,6 +3,7 @@
     <p>
         Число дней с выполненной целью: {{.daysWithGoal}}
     </p>
+    {{if len .dialogs |}}
     <table>
         <thead>
             <tr>
@@ -19,5 +20,6 @@
             {{end}}
         </tbody>
     </table>
+    {{end}}
 </body>
     

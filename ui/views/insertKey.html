@@ -1,0 +1,18 @@
+<body>
+    <p>
+        Для использование функционала звонков ИИ необходимо добавить свой API ключ.
+    </p>
+
+    <button hx-get="/key/instruction" hx-target="body">
+    Как его получить?
+    </button>
+
+    <form hx-put="/user">
+        <br><label for="key">Ключ API Mistral</label>
+        <br><input type="text" id="key" name="key">
+        <br><br>
+        <button type="submit">Добавить</button>
+    </form>
+
+    <br><div id="result"></div><br>
+</body>

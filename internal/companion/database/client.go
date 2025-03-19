@@ -35,11 +35,13 @@ func (c client) AddUser(user model.User) (model.User, error) {
 		return model.User{}, errNilDB
 	}
 
-	if err := c.db.QueryRowx(addUserQuery, user.Email, user.Password).StructScan(&user); err != nil {
+	var id string
+	if err := c.db.QueryRowx(addUserQuery, user.Email, user.Password).Scan(&id); err != nil {
 		c.logger.Error("store user sql query process", zap.Any("user", user), zap.Error(err))
 		return model.User{}, err
 	}
 
+	user.ID = id
 	c.logger.Info("store user", zap.Any("user", user))
 	return user, nil
 }

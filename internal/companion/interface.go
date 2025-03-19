@@ -38,3 +38,8 @@ type userHandlers interface {
 	Update(c *fiber.Ctx) error
 	SettingsPage(c *fiber.Ctx) error
 }
+
+type keyHandlers interface {
+	InsertPage(c *fiber.Ctx) error
+	InstructionPage(c *fiber.Ctx) error
+}

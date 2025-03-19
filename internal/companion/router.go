@@ -11,8 +11,8 @@ func (s *server) initRouter() {
 		return c.SendFile("ui/static/favicon.ico")
 	})
 
-	s.app.Get("/ping", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
+	s.app.Get("/call", func(c *fiber.Ctx) error {
+		return c.SendString("call")
 	})
 
 	// TODO redirect from auth if user is already authed
@@ -27,6 +27,10 @@ func (s *server) initRouter() {
 
 	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
 	withUser := withContext.Group("/", middleware.CheckUser())
+
+	key := withUser.Group("/key")
+	key.Get("/insert", s.keyHandlers.InsertPage)
+	key.Get("/instruction", s.keyHandlers.InstructionPage)
 
 	user := withUser.Group("/user")
 	user.Put("/", s.userHandlers.Update)

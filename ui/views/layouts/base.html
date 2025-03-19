@@ -24,7 +24,9 @@
     <footer style="position:fixed; bottom:0; width: 100%;">
         <nav>
             <form>
-            <button formaction="http://localhost:8080/ping">Начать звонок</button>
+            <button {{if .userHasKey}}formaction="http://localhost:8080/call"{{else}}hx-get="/key/insert" hx-target="body"{{end}}>
+                Начать звонок
+            </button>
             </form>
         </nav>
     </footer>

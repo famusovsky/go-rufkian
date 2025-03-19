@@ -64,10 +64,10 @@ func (h *handlers) Update(c *fiber.Ctx) error {
 		}
 	}
 	if len(updateRequest.Key) > 0 {
-		user.Key = updateRequest.Key
+		user.Key = &updateRequest.Key
 	}
 	if updateRequest.Goal != nil {
-		user.TimeGoalM = *updateRequest.Goal
+		user.TimeGoalM = updateRequest.Goal
 	}
 	h.logger.Info("user", zap.Any("info", user), zap.String("pswd", user.Password))
 
