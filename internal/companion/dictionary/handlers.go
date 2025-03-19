@@ -44,7 +44,7 @@ func (h *handlers) DictionaryPage(c *fiber.Ctx) error {
 
 	return c.Render("dictionary", fiber.Map{
 		"words":          words,
-		"showCallButton": true,
+		"showCallButton": string(c.Context().UserAgent()) == "rufkian", // TODO move somewhere else
 	}, "layouts/base")
 }
 

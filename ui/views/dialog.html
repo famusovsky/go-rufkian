@@ -1,6 +1,6 @@
-<script src="/static/htmx.min.js"></script>
 <body>
-    <h2>Разговор {{.startTime}}</h2>
+    <h2>Разговор от {{.startTime}}</h2>
+	<h3>Продолжительность – {{.duration}}</h3>
     <table>
         <tbody>
             {{with .dialog}}

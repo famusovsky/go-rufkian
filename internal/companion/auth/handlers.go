@@ -12,6 +12,7 @@ import (
 	"github.com/famusovsky/go-rufkian/pkg/cookie"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -54,6 +55,13 @@ func (h *handlers) SignUp(c *fiber.Ctx) error {
 
 	if len(user.Password) < 8 {
 		return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("пароль должен быть длиннее 8 строк")))
+	} else {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
+		if err != nil {
+			h.logger.Error("generate hashed password", zap.Error(err))
+			return render.ErrToResult(c, fmt.Errorf(errWrap.Error(), fmt.Errorf("неизвестная ошибка")))
+		}
+		user.Password = string(hashedPassword)
 	}
 
 	user, err := h.dbClient.AddUser(user)

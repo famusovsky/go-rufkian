@@ -35,14 +35,6 @@ func (c client) AddUser(user model.User) (model.User, error) {
 		return model.User{}, errNilDB
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
-	if err != nil {
-		c.logger.Error("generate hashed password", zap.Error(err))
-		return model.User{}, err
-	}
-
-	user.Password = string(hashedPassword)
-
 	if err := c.db.QueryRowx(addUserQuery, user.Email, user.Password).StructScan(&user); err != nil {
 		c.logger.Error("store user sql query process", zap.Any("user", user), zap.Error(err))
 		return model.User{}, err
@@ -58,14 +50,7 @@ func (c client) UpdateUser(user model.User) error {
 		return errNilDB
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
-	if err != nil {
-		c.logger.Error("generate hashed password", zap.Error(err))
-		return err
-	}
-	user.Password = string(hashedPassword)
-
-	if _, err := c.db.Exec(updateUserQuery, user.ID, user.Email, user.Password, user.Key); err != nil {
+	if _, err := c.db.Exec(updateUserQuery, user.ID, user.Email, user.Password, user.Key, user.TimeGoalM); err != nil {
 		c.logger.Error("update user sql query process", zap.Any("user", user), zap.Error(err))
 		return err
 	}
@@ -89,6 +74,7 @@ func (c client) GetUser(id string) (model.User, error) {
 	c.logger.Info("get user", zap.Any("user", user))
 	return user, nil
 }
+
 func (c client) GetUserByCredentials(user model.User) (model.User, error) {
 	if c.db == nil {
 		c.logger.Error("attempt to get user by creds from nil db")

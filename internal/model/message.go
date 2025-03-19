@@ -33,9 +33,10 @@ func (msgs Messages) WithoutSystem() Messages {
 
 type Dialog struct {
 	ID        string    `json:"id"`
-	UserID    string    `json:"_"`
+	UserID    string    `json:"-"`
 	Messages  Messages  `json:"messages"`
 	StartTime time.Time `json:"start_time"`
+	DurationS int       `json:"duration_s"`
 }
 
 type Dialogs []Dialog

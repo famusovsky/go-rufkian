@@ -12,6 +12,7 @@ type dbDialog struct {
 	UserID    string    `db:"user_id"`
 	Messages  string    `db:"messages"`
 	StartTime time.Time `db:"start_time"`
+	DurationS int       `db:"duration_s"`
 }
 
 func (dbDialog *dbDialog) ToModel(pool *fastjson.ParserPool) (model.Dialog, error) {
@@ -45,5 +46,6 @@ func (dbDialog *dbDialog) ToModel(pool *fastjson.ParserPool) (model.Dialog, erro
 		UserID:    dbDialog.UserID,
 		Messages:  messages,
 		StartTime: dbDialog.StartTime,
+		DurationS: dbDialog.DurationS,
 	}, nil
 }

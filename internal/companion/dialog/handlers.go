@@ -2,13 +2,16 @@ package dialog
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
 	"github.com/famusovsky/go-rufkian/internal/companion/render"
+	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -72,7 +75,8 @@ func (h *handlers) DialogPage(c *fiber.Ctx) error {
 
 	return c.Render("dialog", fiber.Map{
 		"dialog":    dialogView,
-		"startTime": dialog.StartTime,
+		"startTime": dialog.StartTime.Format("02.01.2006 15:04"),
+		"duration":  fmt.Sprintf("минут: %d, секунд: %d", dialog.DurationS/60, dialog.DurationS%60),
 	}, "layouts/base")
 }
 
@@ -87,21 +91,41 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	}
 
 	type dialogView struct {
-		StartTime time.Time
+		StartTime string
 		FirstLine string
 		ID        string
 	}
 
+	slices.SortFunc(dialogs, func(i, j model.Dialog) int {
+		return j.StartTime.Compare(i.StartTime)
+	})
+
+	day := 24 * time.Hour
+	positiveStreak := 0
+	streakCancelled := false
+	currentTime := time.Now().UTC().Truncate(day)
 	dialogViews := make([]dialogView, 0, len(dialogs))
+
 	for _, dialog := range dialogs {
 		if dialog.Messages[0].Empty() {
 			continue
 		}
 
+		if !streakCancelled {
+			dialogTime := dialog.StartTime.UTC().Truncate(day)
+			timeDiff := currentTime.Sub(dialogTime)
+			if timeDiff == day && dialog.DurationS/60 >= user.TimeGoalM {
+				currentTime = dialogTime
+				positiveStreak++
+			} else {
+				streakCancelled = true
+			}
+		}
+
 		firstLine := h.regular.FindString(dialog.Messages[0].Content)
 
 		dialogViews = append(dialogViews, dialogView{
-			StartTime: dialog.StartTime,
+			StartTime: dialog.StartTime.Format("02.01.2006 15:04"),
 			FirstLine: firstLine,
 			ID:        dialog.ID,
 		})
@@ -109,6 +133,7 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 
 	return c.Render("history", fiber.Map{
 		"dialogs":        dialogViews,
-		"showCallButton": true,
+		"showCallButton": string(c.Context().UserAgent()) == "rufkian",
+		"daysWithGoal":   positiveStreak,
 	}, "layouts/base")
 }

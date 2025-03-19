@@ -3,7 +3,7 @@ package database
 // user
 const (
 	addUserQuery        = `INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *;`
-	updateUserQuery     = `UPDATE users SET email = $2, password = $3, key = $4 WHERE id = $1;`
+	updateUserQuery     = `UPDATE users SET email = $2, password = $3, key = $4, time_goal_m = $5 WHERE id = $1;`
 	getUserQuery        = `SELECT * FROM users WHERE id = $1;`
 	getUserByCredsQuery = `SELECT * FROM users WHERE email = $1;`
 )

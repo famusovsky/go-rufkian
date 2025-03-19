@@ -91,6 +91,8 @@ func (c *controller) Stop(userID, key string) (string, error) {
 		return "", nil
 	}
 
+	duration := time.Since(dialog.StartTime)
+	dialog.DurationS = int(duration.Seconds())
 	dialog, err := c.dbClient.StoreDialog(dialog)
 
 	go func() {

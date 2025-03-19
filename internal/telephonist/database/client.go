@@ -49,7 +49,7 @@ func (c client) StoreDialog(dialog model.Dialog) (model.Dialog, error) {
 
 	// XXX probably must convert messages to text, have to check
 	var id string
-	if err := c.db.QueryRowx(storeDialogQuery, dialog.UserID, dialog.StartTime, arr.MarshalTo(nil)).Scan(&id); err != nil {
+	if err := c.db.QueryRowx(storeDialogQuery, dialog.UserID, dialog.StartTime, dialog.DurationS, arr.MarshalTo(nil)).Scan(&id); err != nil {
 		c.logger.Error("store dialog sql query process", zap.String("user_id", dialog.UserID), zap.Error(err))
 		return model.Dialog{}, err
 	}
