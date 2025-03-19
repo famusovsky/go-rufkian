@@ -92,9 +92,19 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 		if dialog.Messages[0].Empty() {
 			continue
 		}
+
+		firstLine := dialog.Messages[0].Content
+		if idx := strings.Index(firstLine, "."); idx > 0 {
+			firstLine = firstLine[:idx]
+		} else if idx := strings.Index(firstLine, "?"); idx > 0 {
+			firstLine = firstLine[:idx]
+		} else if idx := strings.Index(firstLine, "!"); idx > 0 {
+			firstLine = firstLine[:idx]
+		}
+
 		dialogViews = append(dialogViews, dialogView{
 			StartTime: dialog.StartTime,
-			FirstLine: dialog.Messages[0].Content,
+			FirstLine: firstLine,
 			ID:        dialog.ID,
 		})
 	}

@@ -40,6 +40,7 @@ func (s *server) initRouter() {
 	dictionary.Get("/", s.dictionaryHandlers.DictionaryPage)
 	// TODO save word in context (or make add/delete better)
 	word := dictionary.Group("/:word<string>")
+
 	word.Get("/", s.dictionaryHandlers.WordPage)
 	word.Post("/", s.dictionaryHandlers.AddWord, s.dictionaryHandlers.WordPage)
 	word.Delete("/", s.dictionaryHandlers.DeleteWord, s.dictionaryHandlers.WordPage)
