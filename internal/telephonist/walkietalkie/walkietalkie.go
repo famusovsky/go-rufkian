@@ -31,7 +31,7 @@ func New(db sqlx.Ext, logger *zap.Logger) IController {
 			SetAllowMethodGetPayload(true).
 			SetContentLength(true).
 			SetBaseURL(mistralChatCompletionsURL).
-			SetTimeout(1 * time.Minute),
+			SetTimeout(20 * time.Second),
 		logger: logger,
 	}
 }
@@ -86,6 +86,11 @@ func (c *controller) Stop(userID, key string) (string, error) {
 	}
 
 	dialog, _ := dialogRaw.(model.Dialog)
+	dialog.Messages = dialog.Messages.WithoutSystem()
+	if len(dialog.Messages) < 2 {
+		return "", nil
+	}
+
 	dialog, err := c.dbClient.StoreDialog(dialog)
 
 	go func() {

@@ -93,10 +93,3 @@ func (s *server) Delete(c *fiber.Ctx) error {
 		Status: utils.StatusMessage(fiber.StatusOK),
 	})
 }
-
-func (s *server) Ping(c *fiber.Ctx) error {
-	s.logger.Info("ping pong")
-	return c.JSON(struct {
-		Msg string `json:"message"`
-	}{Msg: "pong"})
-}

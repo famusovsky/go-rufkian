@@ -29,7 +29,6 @@ func (c client) StoreDialog(dialog model.Dialog) (model.Dialog, error) {
 		return model.Dialog{}, errors.New("attempt to user empty db")
 	}
 
-	dialog.Messages = dialog.Messages.WithoutSystem()
 	if len(dialog.Messages) == 0 {
 		c.logger.Error("store empty dialog", zap.String("user_id", dialog.UserID))
 		return model.Dialog{}, model.ErrEmptyDialog
