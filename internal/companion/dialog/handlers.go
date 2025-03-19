@@ -2,6 +2,7 @@ package dialog
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,15 +16,19 @@ import (
 type handlers struct {
 	dbClient database.IClient
 	logger   *zap.Logger
+	regular  *regexp.Regexp
 }
 
 func NewHandlers(
 	dbClient database.IClient,
 	logger *zap.Logger,
 ) IHandlers {
+	regular, _ := regexp.Compile("[^!,?,.]+.")
+
 	res := handlers{
 		dbClient: dbClient,
 		logger:   logger,
+		regular:  regular,
 	}
 
 	return &res
@@ -93,14 +98,7 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 			continue
 		}
 
-		firstLine := dialog.Messages[0].Content
-		if idx := strings.Index(firstLine, "."); idx > 0 {
-			firstLine = firstLine[:idx]
-		} else if idx := strings.Index(firstLine, "?"); idx > 0 {
-			firstLine = firstLine[:idx]
-		} else if idx := strings.Index(firstLine, "!"); idx > 0 {
-			firstLine = firstLine[:idx]
-		}
+		firstLine := h.regular.FindString(dialog.Messages[0].Content)
 
 		dialogViews = append(dialogViews, dialogView{
 			StartTime: dialog.StartTime,
@@ -110,6 +108,7 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("history", fiber.Map{
-		"dialogs": dialogViews,
+		"dialogs":        dialogViews,
+		"showCallButton": true,
 	}, "layouts/base")
 }

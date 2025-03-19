@@ -2,6 +2,8 @@ package dictionary
 
 import (
 	"errors"
+	"regexp"
+	"strings"
 
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
@@ -13,15 +15,18 @@ import (
 type handlers struct {
 	dbClient database.IClient
 	logger   *zap.Logger
+	regular  *regexp.Regexp
 }
 
 func NewHandlers(
 	dbClient database.IClient,
 	logger *zap.Logger,
 ) IHandlers {
+	regular, _ := regexp.Compile("[^a-zA-Z0-9]+")
 	res := &handlers{
 		dbClient: dbClient,
 		logger:   logger,
+		regular:  regular,
 	}
 
 	return res
@@ -38,14 +43,18 @@ func (h *handlers) DictionaryPage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("dictionary", fiber.Map{
-		"words": words,
+		"words":          words,
+		"showCallButton": true,
 	}, "layouts/base")
 }
 
 func (h *handlers) WordPage(c *fiber.Ctx) error {
 	word := c.Params("word", "deutsch")
 	previousPage := c.Query("previous_page")
-	h.logger.Info("previous_page", zap.String("addr", previousPage))
+
+	word = h.regular.ReplaceAllString(word, "")
+	word = strings.ToLower(word)
+	h.logger.Info("word", zap.String("w", word))
 
 	user, _ := middleware.UserFromCtx(c)
 
