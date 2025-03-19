@@ -11,6 +11,10 @@ func (s *server) initRouter() {
 		return c.SendFile("ui/static/favicon.ico")
 	})
 
+	s.app.Get("/ping", func(c *fiber.Ctx) error {
+		return c.SendString("OK")
+	})
+
 	// TODO redirect from auth if user is already authed
 	auth := s.app.Group("/auth")
 	auth.Get("/", s.authHandlers.AuthPage)
