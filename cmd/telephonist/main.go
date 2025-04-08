@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/famusovsky/go-rufkian/internal/telephonist"
 	"github.com/famusovsky/go-rufkian/pkg/database"
@@ -40,8 +41,14 @@ func main() {
 		return
 	}
 
+	yaTranslateKey, yaFolderID := os.Getenv("YA_TRANSLATE_KEY"), os.Getenv("YA_FOLDER_ID")
+	if yaTranslateKey == "" || yaFolderID == "" {
+		logger.Error("yandex cloud credentials are not provided")
+		return
+	}
+
 	// TODO use config instead of addr
-	server := telephonist.NewServer(logger, db, *addr)
+	server := telephonist.NewServer(logger, db, *addr, yaFolderID, yaTranslateKey)
 
 	grace.Handle(server, logger)
 }

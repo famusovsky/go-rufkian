@@ -34,9 +34,9 @@ const (
 )
 
 const (
-	FinishReasonStop        mistralResponceFinishReason = "stop"
-	FinishReasonLength      mistralResponceFinishReason = "length"
-	FinishReasonModelLength mistralResponceFinishReason = "model_length"
-	FinishReasonError       mistralResponceFinishReason = "error"
-	FinishReasonToolCalls   mistralResponceFinishReason = "tool_calls"
+	FinishReasonStop        mistralResponseFinishReason = "stop"
+	FinishReasonLength      mistralResponseFinishReason = "length"
+	FinishReasonModelLength mistralResponseFinishReason = "model_length"
+	FinishReasonError       mistralResponseFinishReason = "error"
+	FinishReasonToolCalls   mistralResponseFinishReason = "tool_calls"
 )

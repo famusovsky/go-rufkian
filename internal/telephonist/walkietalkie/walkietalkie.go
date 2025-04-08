@@ -8,6 +8,7 @@ import (
 
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/famusovsky/go-rufkian/internal/telephonist/database"
+	"github.com/famusovsky/go-rufkian/internal/telephonist/translator"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"resty.dev/v3"
@@ -15,13 +16,14 @@ import (
 
 type controller struct {
 	// FIXME situation when on the several apps same api key is used
-	dialogs  sync.Map
-	dbClient database.IClient
-	client   *resty.Client
-	logger   *zap.Logger
+	dialogs    sync.Map
+	dbClient   database.IClient
+	translator translator.IClient
+	client     *resty.Client
+	logger     *zap.Logger
 }
 
-func New(db sqlx.Ext, logger *zap.Logger) IController {
+func New(db sqlx.Ext, logger *zap.Logger, translator translator.IClient) IController {
 	logger.Info("create walkie talkie controller")
 	return &controller{
 		dialogs:  sync.Map{},
@@ -31,8 +33,9 @@ func New(db sqlx.Ext, logger *zap.Logger) IController {
 			SetAllowMethodGetPayload(true).
 			SetContentLength(true).
 			SetBaseURL(mistralChatCompletionsURL).
-			SetTimeout(20 * time.Second),
-		logger: logger,
+			SetTimeout(10 * time.Second),
+		logger:     logger,
+		translator: translator,
 	}
 }
 
@@ -95,14 +98,26 @@ func (c *controller) Stop(userID, key string) (string, error) {
 	dialog.DurationS = int(duration.Seconds())
 	dialog, err := c.dbClient.StoreDialog(dialog)
 
-	go func() {
-		dialog := dialog
-		c.getTranslation(key, &dialog)
-		dialog, err := c.dbClient.StoreDialog(dialog)
+	go func(dialog model.Dialog) {
+		texts := make([]string, 0, len(dialog.Messages))
+		for _, msg := range dialog.Messages {
+			texts = append(texts, msg.Content)
+		}
+
+		translated, err := c.translator.Translate(texts)
 		if err != nil {
+			c.logger.Error("translating dialog", zap.String("dialog_id", dialog.ID), zap.Error(err))
+			return
+		}
+
+		for i, t := range translated {
+			dialog.Messages[i].Content = t
+		}
+
+		if dialog, err := c.dbClient.StoreDialog(dialog); err != nil {
 			c.logger.Error("store dialog translation", zap.String("dialog_id", dialog.ID), zap.Error(err))
 		}
-	}()
+	}(dialog)
 
 	return dialog.ID, err
 }
@@ -115,52 +130,26 @@ type mistralRequest struct {
 	// Stop     []string `json:"stop"`
 }
 
-type mistralResponceFinishReason string
+type mistralResponseFinishReason string
 
 type mistralChoice struct {
 	Index        int                         `json:"index"`
 	Message      model.Message               `json:"message"`
-	FinishReason mistralResponceFinishReason `json:"finish_reason"`
+	FinishReason mistralResponseFinishReason `json:"finish_reason"`
 }
 
-type mistralResponce struct {
+type mistralResponse struct {
 	Choices []mistralChoice `json:"choices"`
 }
 
-func (mr mistralResponce) Message() model.Message {
+func (mr mistralResponse) Message() model.Message {
 	if len(mr.Choices) > 0 {
 		return mr.Choices[len(mr.Choices)-1].Message
 	}
 	return model.Message{}
 }
 
-func (c *controller) getTranslation(key string, dialog *model.Dialog) {
-	wg := sync.WaitGroup{}
-	wg.Add(len(dialog.Messages))
-	for i, msg := range dialog.Messages {
-		go func() {
-			defer wg.Done()
-			req := mistralRequest{
-				Model: model.MistralSmall,
-				Messages: model.Messages{
-					model.Message{Role: model.SystemRole, Content: translationSystemContent},
-					model.Message{Role: model.UserRole, Content: msg.Content},
-					model.Message{Role: model.AssistantRole, Content: translationPrefixContent, Prefix: true},
-				},
-			}
-			responce, err := c.getMistralResponse(key, req)
-			if err != nil {
-				c.logger.Error("translate message", zap.Error(err), zap.String("message", msg.Content))
-				return
-			}
-			translation := withoutTranslationPrefix(responce.Message()).Content
-			dialog.Messages[i].Translation = &translation
-		}()
-	}
-	wg.Wait()
-}
-
-func (c *controller) getMistralResponse(key string, payload mistralRequest) (mistralResponce, error) {
+func (c *controller) getMistralResponse(key string, payload mistralRequest) (mistralResponse, error) {
 	req := c.client.R().
 		SetContentType("application/json").
 		SetBody(payload).
@@ -169,12 +158,12 @@ func (c *controller) getMistralResponse(key string, payload mistralRequest) (mis
 
 	response, err := req.Send()
 	if err != nil {
-		return mistralResponce{}, err
+		return mistralResponse{}, err
 	}
 
-	var ret mistralResponce
+	var ret mistralResponse
 	if err := json.Unmarshal(response.Bytes(), &ret); err != nil {
-		return mistralResponce{}, err
+		return mistralResponse{}, err
 	}
 
 	return ret, nil

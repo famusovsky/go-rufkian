@@ -1,6 +1,7 @@
 package telephonist
 
 import (
+	"github.com/famusovsky/go-rufkian/internal/telephonist/translator"
 	"github.com/famusovsky/go-rufkian/internal/telephonist/walkietalkie"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
@@ -15,7 +16,7 @@ type server struct {
 }
 
 // TODO instead of addr, input a normal config
-func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
+func NewServer(logger *zap.Logger, db sqlx.Ext, addr, yaFolderID, yaTranslateKey string) IServer {
 	return &server{
 		app: fiber.New(fiber.Config{
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -31,7 +32,7 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) IServer {
 		}),
 		addr:         addr,
 		logger:       logger,
-		walkieTalkie: walkietalkie.New(db, logger),
+		walkieTalkie: walkietalkie.New(db, logger, translator.NewYaClient(yaFolderID, yaTranslateKey)),
 	}
 }
 
