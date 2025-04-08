@@ -10,7 +10,6 @@
     <button hx-post="/dictionary/{{.word}}" hx-target="body">Добавить в словарь</button>
     {{end}}
     <div id="result"></div>
-    <br>
     <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
 </body>
     

@@ -1,8 +1,5 @@
 <body>
-    <h2>
-        Настройки
-    </h2>
-
+    <h2>Настройки</h2>
     <form hx-put="/user">
         <br><label for="email">Email</label>
         <br><input type="text" id="email" name="email" placeholder={{.email}}>
@@ -14,12 +11,8 @@
         <br><input type="number" id="goal" name="goal" min="0" placeholder="{{.goal}}">
         <br><br>
         <button type="submit">Обновить настройки</button>
+        <p id="result"></p>
+        <button hx-delete="/auth">Выйти из аккаунта</button>
     </form>
-
-    <br><div id="result"></div><br>
-
-    <button hx-delete="/auth">
-        Выйти из аккаунта
-    </button>
 </body>
     

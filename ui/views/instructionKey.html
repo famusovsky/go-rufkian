@@ -1,6 +1,7 @@
 <body>
-
-    Чтобы создать ключ доступа к Mistral AI:
+    <p>
+        Чтобы создать ключ доступа к Mistral AI:
+    </p>
     <ol>
         <li>Cоздайте аккаунт Mistral или войдите в него на сайте console.mistral.ai.</li>
         <li>Перейдите на страницу "API Keys" – кнопка для перехода находится с левой стороны экрана</li>
@@ -8,13 +9,11 @@
         <li>Подтвердите создание ключа, повторно нажав "Create new key" во всплывшем окне</li>
         <li>Скопируйте созданный ключ, нажав оранжевую кнопку "Copy key"</li>
     </ol>
-
     <form hx-put="/user">
         <br><label for="key">Ключ API Mistral</label>
         <br><input type="text" id="key" name="key">
         <br><br>
         <button type="submit">Добавить</button>
     </form>
-
-    <br><div id="result"></div><br>
+    <p id="result"></p>
 </body>
