@@ -177,12 +177,3 @@ func withoutChatPrefix(msg model.Message) model.Message {
 	}
 	return msg
 }
-
-func withoutTranslationPrefix(msg model.Message) model.Message {
-	msg.Prefix = false
-	if len(msg.Content) > 0 && msg.Role == model.AssistantRole {
-		withoutPrefix := msg.Content[len(translationPrefixContent):]
-		msg.Content = strings.TrimSpace(withoutPrefix)
-	}
-	return msg
-}
