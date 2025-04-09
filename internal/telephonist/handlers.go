@@ -10,9 +10,7 @@ import (
 )
 
 type requestPayload struct {
-	UserID *string `json:"user_id"`
-	Key    *string `json:"key"`
-	Input  *string `json:"input"`
+	Input *string `json:"input"`
 }
 
 type postResponsePayload struct {
@@ -26,29 +24,27 @@ func (s *server) Post(c *fiber.Ctx) error {
 	if err != nil {
 		s.logger.Error("parse post request payload", zap.Error(err), zap.ByteString("payload", c.Body()))
 		err = model.ErrWrongBodyFormat
-	} else {
-		if payload.UserID == nil {
-			err = model.ErrEmptyUserID
-		}
-		if payload.Key == nil {
-			err = errors.Join(err, model.ErrEmptyKey)
-		}
-		if payload.Input == nil {
-			err = errors.Join(err, model.ErrEmptyInput)
-		}
+	} else if payload.Input == nil {
+		err = errors.Join(err, model.ErrEmptyInput)
 	}
 
 	if err != nil {
 		s.logger.Info("post request payload", zap.Error(err))
 		return c.
 			Status(fiber.StatusBadRequest).
-			JSON(postResponsePayload{
-				Status: err.Error(),
-			})
+			JSON(postResponsePayload{Status: err.Error()})
+	}
+
+	user, err := s.getUser(c)
+	if err != nil {
+		s.logger.Error("get user from companion", zap.Error(err))
+		return c.
+			Status(fiber.StatusUnauthorized).
+			JSON(postResponsePayload{Status: err.Error()})
 	}
 
 	return c.JSON(postResponsePayload{
-		Answer: s.walkieTalkie.Talk(*payload.UserID, *payload.Key, *payload.Input),
+		Answer: s.walkieTalkie.Talk(user.ID, *user.Key, *payload.Input),
 		Status: utils.StatusMessage(fiber.StatusOK),
 	})
 }
@@ -59,29 +55,15 @@ type deleteResponsePayload struct {
 }
 
 func (s *server) Delete(c *fiber.Ctx) error {
-	var payload requestPayload
-	err := c.BodyParser(&payload)
+	user, err := s.getUser(c)
 	if err != nil {
-		err = model.ErrWrongBodyFormat
-	} else {
-		if payload.Key == nil {
-			err = errors.Join(err, model.ErrEmptyKey)
-		}
-		if payload.UserID == nil {
-			err = model.ErrEmptyUserID
-		}
-	}
-
-	if err != nil {
-		s.logger.Warn("delete request payload", zap.Error(err))
+		s.logger.Error("get user from companion", zap.Error(err))
 		return c.
-			Status(fiber.StatusBadRequest).
-			JSON(postResponsePayload{
-				Status: err.Error(),
-			})
+			Status(fiber.StatusUnauthorized).
+			JSON(postResponsePayload{Status: err.Error()})
 	}
 
-	id, err := s.walkieTalkie.Stop(*payload.UserID, *payload.Key)
+	id, err := s.walkieTalkie.Stop(user.ID, *user.Key)
 	if err != nil {
 		return c.JSON(deleteResponsePayload{
 			Status: err.Error(),

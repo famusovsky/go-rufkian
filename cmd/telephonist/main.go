@@ -47,8 +47,14 @@ func main() {
 		return
 	}
 
+	companionURL := os.Getenv("COMPANION_URL")
+	if companionURL == "" {
+		logger.Error("companion url is not provided")
+		return
+	}
+
 	// TODO use config instead of addr
-	server := telephonist.NewServer(logger, db, *addr, yaFolderID, yaTranslateKey)
+	server := telephonist.NewServer(logger, db, *addr, companionURL, yaFolderID, yaTranslateKey)
 
 	grace.Handle(server, logger)
 }
