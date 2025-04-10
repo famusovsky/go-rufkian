@@ -55,6 +55,7 @@ func CheckUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		_, ok := UserFromCtx(c)
 		if !ok {
+			c.Set("HX-Retarget", "body")
 			return c.Redirect("/auth")
 		}
 		return c.Next()

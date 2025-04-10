@@ -1,41 +1,40 @@
 <body>
-    <h2>Разговор от {{.startTime}}</h2>
+	<h2>Разговор от {{.startTime}}</h2>
 	<h3>Продолжительность – {{.duration}}</h3>
-    <table>
-        <tbody>
-            {{with .dialog}}
-            {{$id := .ID}}
-            {{if not .Translated}}
-            <div hx-get="/dialog/{{$id}}" hx-trigger="every 20s" hx-target="body"></div>
-            {{end}}
-            {{range $line := .Lines}}
-                <tr>
-	                <td>
-	                {{if eq $line.Role "assistant"}}
-		                И.И.
-	                {{else}}
-		                Вы
-	                {{end}}
-	                </td>
-	                <td>	
-					{{range $line.Words}}
-						<button hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dialog/{{$id}}"}'>
-						{{.}}
-						</button>
+	<table>
+		<tbody>
+			{{with .dialog}}
+			{{$id := .ID}}
+			{{if not .Translated}}
+			<div hx-get="/dialog/{{$id}}" hx-trigger="every 20s" hx-target="body"></div>
+			{{end}}
+			{{range $line := .Lines}}
+			<tr>
+				<td>
+					{{if eq $line.Role "assistant"}}
+					И.И.
+					{{else}}
+					Вы
 					{{end}}
-					</td>
-				</tr>
-				{{if eq $line.Translation nil | not}}
-				<tr>
-					<td></td>
-					<td style="font-style: italic;">
+				</td>
+				<td>
+					{{range $line.Words}}
+					<button hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dialog/{{$id}}"}'>
+						{{.}}
+					</button>
+					{{end}}
+				</td>
+			</tr>
+			{{if eq $line.Translation nil | not}}
+			<tr>
+				<td></td>
+				<td style="font-style: italic;">
 					{{$line.Translation}}
-					</td>
-                </tr>
-				{{end}}
-            {{end}}
-            {{end}}
-        </tbody>
-    </table>
+				</td>
+			</tr>
+			{{end}}
+			{{end}}
+			{{end}}
+		</tbody>
+	</table>
 </body>
-    

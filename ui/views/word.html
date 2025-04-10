@@ -1,15 +1,23 @@
 <body>
-    {{if eq .previousPage "" | not}}
-    <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
-    {{end}}
-    <!-- TODO if the word is not on woerter do not show buttons and show err -->
-    <!-- TODO make normal toggle -->
-    {{if .inDictionary}}
-    <button hx-delete="/dictionary/{{.word}}" hx-target="body">Удалить из словаря</button>
-    {{else}}
-    <button hx-post="/dictionary/{{.word}}" hx-target="body">Добавить в словарь</button>
-    {{end}}
-    <div id="result"></div>
-    <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
+  {{if eq .previousPage "" | not}}
+  <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
+  {{end}}
+  <!-- TODO if the word is not on woerter do not show buttons and show err -->
+  <button class="toggle-word" hx-delete="/dictionary/{{.word}}" {{if not .inDictionary}}hidden=""{{end}}>Удалить из словаря</button>
+  <button class="toggle-word" hx-post="/dictionary/{{.word}}" {{if .inDictionary}}hidden=""{{end}}>Добавить в словарь</button>
+  <div id="result"></div>
+  <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
+  <script>
+    if (window.toggleWord === undefined) {
+      htmx.on('htmx:afterRequest', function (evt) {
+        if (evt.detail.successful && evt.detail.elt.className === 'toggle-word') {
+          const elements = document.getElementsByClassName('toggle-word');
+          for (const element of elements) {
+            element.toggleAttribute('hidden');
+          }
+        }
+      });
+      window.toggleWord = true;
+    };
+  </script>
 </body>
-    

@@ -14,12 +14,11 @@
         <tbody>
             {{range .dialogs}}
             <tr hx-get="/dialog/{{.ID}}" hx-target="body">
-	            <td>{{.StartTime}}</td>
-	            <td>{{.FirstLine}}</td>
+                <td>{{.StartTime}}</td>
+                <td>{{.FirstLine}}</td>
             </tr>
             {{end}}
         </tbody>
     </table>
     {{end}}
 </body>
-    

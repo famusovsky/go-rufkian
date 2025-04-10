@@ -1,18 +1,16 @@
 <body>
     <h2>Настройки</h2>
     <form hx-put="/user">
-        <br><label for="email">Email</label>
-        <br><input type="text" id="email" name="email" placeholder={{.email}}>
-        <br><label for="password">Пароль</label>
-        <br><input type="password" id="password" name="password">
-        <br><label for="key">Ключ API Mistral</label>
-        <br><input type="text" id="key" name="key" placeholder="{{.key}}">
-        <br><label for="goal">Ежедневная цель (в минутах):</label>
-        <br><input type="number" id="goal" name="goal" min="0" placeholder="{{.goal}}">
-        <br><br>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" placeholder={{.email}}>
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password">
+        <label for="key">Ключ API Mistral</label>
+        <input type="text" id="key" name="key" placeholder="{{.key}}">
+        <label for="goal">Ежедневная цель (в минутах):</label>
+        <input type="number" id="goal" name="goal" min="0" placeholder="{{.goal}}">
         <button type="submit">Обновить настройки</button>
         <p id="result"></p>
         <button hx-delete="/auth">Выйти из аккаунта</button>
     </form>
 </body>
-    

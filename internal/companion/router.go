@@ -50,6 +50,6 @@ func (s *server) initRouter() {
 	word := dictionary.Group("/:word<string>")
 
 	word.Get("/", s.dictionaryHandlers.WordPage)
-	word.Post("/", s.dictionaryHandlers.AddWord, s.dictionaryHandlers.WordPage)
-	word.Delete("/", s.dictionaryHandlers.DeleteWord, s.dictionaryHandlers.WordPage)
+	word.Post("/", s.dictionaryHandlers.AddWord)
+	word.Delete("/", s.dictionaryHandlers.DeleteWord)
 }

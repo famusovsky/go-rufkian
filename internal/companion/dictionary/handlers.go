@@ -81,7 +81,8 @@ func (h *handlers) AddWord(c *fiber.Ctx) error {
 	if err := h.dbClient.AddWordToUser(user.ID, word); err != nil {
 		return render.ErrToResult(c, fiber.ErrInternalServerError)
 	}
-	return c.Next()
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (h *handlers) DeleteWord(c *fiber.Ctx) error {
@@ -94,5 +95,6 @@ func (h *handlers) DeleteWord(c *fiber.Ctx) error {
 	if err := h.dbClient.DeleteWordFromUser(user.ID, word); err != nil {
 		return render.ErrToResult(c, fiber.ErrInternalServerError)
 	}
-	return c.Next()
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
