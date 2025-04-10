@@ -24,7 +24,7 @@
     <footer style="position:fixed; bottom:0; width: 100%;">
         <nav>
             <form>
-            <button {{if .userHasKey}}formaction="http://localhost:8080/call"{{else}}hx-get="/key/insert" hx-target="body"{{end}}>
+            <button {{if .userHasKey}}formaction="/call"{{else}}hx-get="/key/insert" hx-target="body"{{end}}>
                 Начать звонок
             </button>
             </form>
