@@ -111,10 +111,10 @@ func (c *controller) Stop(userID, key string) (string, error) {
 		}
 
 		for i, t := range translated {
-			dialog.Messages[i].Content = t
+			dialog.Messages[i].Translation = &t
 		}
 
-		if dialog, err := c.dbClient.StoreDialog(dialog); err != nil {
+		if err := c.dbClient.UpdateDialog(dialog); err != nil {
 			c.logger.Error("store dialog translation", zap.String("dialog_id", dialog.ID), zap.Error(err))
 		}
 	}(dialog)
@@ -125,9 +125,6 @@ func (c *controller) Stop(userID, key string) (string, error) {
 type mistralRequest struct {
 	Model    model.MistralModel `json:"model"`
 	Messages model.Messages     `json:"messages"`
-	// TODO stream
-	// Stream   bool     `json:"stream"`
-	// Stop     []string `json:"stop"`
 }
 
 type mistralResponseFinishReason string
