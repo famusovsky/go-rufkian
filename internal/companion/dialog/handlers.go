@@ -114,7 +114,7 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 		if !streakCancelled {
 			dialogTime := dialog.StartTime.UTC().Truncate(day)
 			timeDiff := currentTime.Sub(dialogTime)
-			if timeDiff == day && (!user.HasTimeGoal() || dialog.DurationS/60 >= *user.TimeGoalM) {
+			if timeDiff <= day && (!user.HasTimeGoal() || dialog.DurationS/60 >= *user.TimeGoalM) {
 				currentTime = dialogTime
 				positiveStreak++
 			} else {
