@@ -16,6 +16,7 @@ import (
 
 type controller struct {
 	// FIXME situation when on the several apps same api key is used
+	// TODO better to use some normal cache, Redis for example
 	dialogs    sync.Map
 	dbClient   database.IClient
 	translator translator.IClient
@@ -57,6 +58,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 		}
 	}
 	dialog.Messages = append(dialog.Messages, model.Message{Role: model.UserRole, Content: input})
+	dialog.UpdatedAt = time.Now()
 
 	request := mistralRequest{
 		Model:    model.MistralSmall,
@@ -81,7 +83,7 @@ func (c *controller) Talk(userID string, key, input string) string {
 	return msg.Content
 }
 
-func (c *controller) Stop(userID, key string) (string, error) {
+func (c *controller) Stop(userID string) (string, error) {
 	dialogRaw, ok := c.dialogs.LoadAndDelete(userID)
 	if !ok {
 		c.logger.Warn("delete dialog process", zap.String("user_id", userID), zap.Error(model.ErrNoHistoryFound))
@@ -120,6 +122,21 @@ func (c *controller) Stop(userID, key string) (string, error) {
 	}(dialog)
 
 	return dialog.ID, err
+}
+
+func (c *controller) CleanUp() {
+	now := time.Now()
+	c.dialogs.Range(func(key, value any) bool {
+		userID, keyOk := key.(string)
+		dialog, valOk := value.(model.Dialog)
+		if !keyOk || !valOk {
+			return true
+		}
+		if dialog.UpdatedAt.Add(10 * time.Minute).Before(now) {
+			c.Stop(userID)
+		}
+		return true
+	})
 }
 
 type mistralRequest struct {

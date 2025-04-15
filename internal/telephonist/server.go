@@ -16,6 +16,7 @@ type server struct {
 	addr            string
 	logger          *zap.Logger
 	walkieTalkie    walkietalkie.IController
+	ticker          *time.Ticker
 	companionClient *resty.Client
 }
 
@@ -37,6 +38,7 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr, companionURL, yaFolderID, 
 		addr:         addr,
 		logger:       logger,
 		walkieTalkie: walkietalkie.New(db, logger, translator.NewYaClient(yaFolderID, yaTranslateKey)),
+		ticker:       time.NewTicker(time.Minute),
 		companionClient: resty.New().
 			SetDisableWarn(true).
 			SetAllowMethodGetPayload(true).
@@ -49,11 +51,18 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr, companionURL, yaFolderID, 
 func (s *server) Run() {
 	s.initRouter()
 
+	go func() {
+		for range s.ticker.C {
+			s.walkieTalkie.CleanUp()
+		}
+	}()
+
 	if err := s.app.Listen(s.addr); err != nil {
 		s.logger.Fatal("server crash", zap.Error(err))
 	}
 }
 
 func (s *server) Shutdown() {
+	s.ticker.Stop()
 	s.app.Shutdown()
 }

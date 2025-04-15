@@ -36,6 +36,7 @@ type Dialog struct {
 	UserID    string    `json:"-"`
 	Messages  Messages  `json:"messages"`
 	StartTime time.Time `json:"start_time"`
+	UpdatedAt time.Time `json:"-"`
 	DurationS int       `json:"duration_s"`
 }
 

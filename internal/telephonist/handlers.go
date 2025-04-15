@@ -63,7 +63,7 @@ func (s *server) Delete(c *fiber.Ctx) error {
 			JSON(postResponsePayload{Status: err.Error()})
 	}
 
-	id, err := s.walkieTalkie.Stop(user.ID, *user.Key)
+	id, err := s.walkieTalkie.Stop(user.ID)
 	if err != nil {
 		return c.JSON(deleteResponsePayload{
 			Status: err.Error(),
