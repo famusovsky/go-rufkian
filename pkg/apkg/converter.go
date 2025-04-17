@@ -7,26 +7,18 @@ import (
 	"github.com/alicebob/bakelite"
 )
 
-func Convert(deck Deck) ([]byte, error) {
+func Convert(anki2 Anki2) ([]byte, error) {
 	db := bakelite.New()
+	defer db.Close()
 
-	// TODO make with actual schema, it is just a test
-	deckSlice := make([][]any, 0, len(deck))
-	for _, card := range deck {
-		if len(card) < 2 {
-			continue
+	for table, columns := range tables {
+		if err := db.AddSlice(table, columns, anki2.GetTable(table)); err != nil {
+			return nil, err
 		}
-		deckSlice = append(deckSlice, []any{card[0], card[1]})
 	}
-
-	db.AddSlice("cards", []string{"face", "back"}, deckSlice)
 
 	buf := new(bytes.Buffer)
 	if err := db.WriteTo(buf); err != nil {
-		return nil, err
-	}
-
-	if err := db.Close(); err != nil {
 		return nil, err
 	}
 
@@ -37,18 +29,24 @@ func wrapIntoAPKG(anki2 []byte) ([]byte, error) {
 	res := new(bytes.Buffer)
 	w := zip.NewWriter(res)
 
-	f, err := w.Create("collection.anki2")
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := f.Write(anki2); err != nil {
-		return nil, err
-	}
+	writeFile(w, anki2, "collection.anki2")
+	writeFile(w, []byte("{}"), "media") // TODO add media support
 
 	if err := w.Close(); err != nil {
 		return nil, err
 	}
-
 	return res.Bytes(), nil
+}
+
+func writeFile(w *zip.Writer, contents []byte, name string) error {
+	f, err := w.Create(name)
+	if err != nil {
+		return err
+	}
+
+	if _, err := f.Write(contents); err != nil {
+		return err
+	}
+
+	return nil
 }
