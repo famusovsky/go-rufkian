@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/alicebob/bakelite v0.8.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/gofiber/template v1.8.3 // indirect
 	github.com/gofiber/utils v1.1.0 // indirect
