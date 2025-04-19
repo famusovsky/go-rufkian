@@ -15,18 +15,20 @@ func (s *server) initRouter() {
 		return c.SendString("call")
 	})
 
+	main := s.app.Group("/", middleware.CheckUserAgent)
+
 	// TODO redirect from auth if user is already authed
-	auth := s.app.Group("/auth")
+	auth := main.Group("/auth")
 	auth.Get("/", s.authHandlers.AuthPage)
 	auth.Put("/", s.authHandlers.SignIn)
 	auth.Post("/", s.authHandlers.SignUp)
 	auth.Delete("/", s.authHandlers.SignOut)
 
-	proxy := s.app.Group("/proxy")
+	proxy := main.Group("/proxy")
 	proxy.Get("/woerter/:q<string>", s.proxyHandlers.Woerter)
 
-	withContext := s.app.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
-	withUser := withContext.Group("/", middleware.CheckUser())
+	withContext := main.Group("/", middleware.SetContext(s.cookieHandler, s.dbClient, s.logger))
+	withUser := withContext.Group("/", middleware.CheckUser)
 
 	key := withUser.Group("/key")
 	key.Get("/insert", s.keyHandlers.InsertPage)

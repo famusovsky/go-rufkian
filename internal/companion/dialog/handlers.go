@@ -132,9 +132,8 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("history", fiber.Map{
-		"dialogs":        dialogViews,
-		"userHasKey":     user.HasKey(),
-		"showCallButton": string(c.Context().UserAgent()) == "rufkian",
-		"daysWithGoal":   positiveStreak,
+		"dialogs":      dialogViews,
+		"userHasKey":   user.HasKey(),
+		"daysWithGoal": positiveStreak,
 	}, "layouts/base")
 }

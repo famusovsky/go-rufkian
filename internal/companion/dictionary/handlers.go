@@ -46,15 +46,13 @@ func (h *handlers) DictionaryPage(c *fiber.Ctx) error {
 
 	if len(words) == 0 {
 		return c.Render("dictionary", fiber.Map{
-			"empty":          true,
-			"showCallButton": string(c.Context().UserAgent()) == "rufkian", // TODO move somewhere else
+			"empty": true,
 		}, "layouts/base")
 	}
 
 	return c.Render("dictionary", fiber.Map{
-		"words":          words,
-		"userHasKey":     user.Key,
-		"showCallButton": string(c.Context().UserAgent()) == "rufkian", // TODO move somewhere else
+		"words":      words,
+		"userHasKey": user.Key,
 	}, "layouts/base")
 }
 

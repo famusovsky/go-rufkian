@@ -51,15 +51,20 @@ func SetContext(
 	}
 }
 
-func CheckUser() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		_, ok := UserFromCtx(c)
-		if !ok {
-			c.Set("HX-Retarget", "body")
-			return c.Redirect("/auth")
-		}
-		return c.Next()
+func CheckUser(c *fiber.Ctx) error {
+	_, ok := UserFromCtx(c)
+	if !ok {
+		c.Set("HX-Retarget", "body")
+		return c.Redirect("/auth")
 	}
+	return c.Next()
+}
+
+func CheckUserAgent(c *fiber.Ctx) error {
+	c.Bind(fiber.Map{
+		"rufkian": string(c.Context().UserAgent()) == "rufkian",
+	})
+	return c.Next()
 }
 
 func getUser(r *http.Request, cookieHandler cookie.IHandler, dbClient database.IClient) (model.User, error) {
