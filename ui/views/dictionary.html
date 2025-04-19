@@ -1,14 +1,17 @@
 <body>
-    <h2>Словарь</h2>
+    {{$words := .words}}
+    {{if .empty}}
+    <p>Словарь пуст</p>
+    {{else}}
+    <a class="button-like" style="text-decoration:none" href="/dictionary/apkg" download>Экспортировать для Anki</a>
     <table>
         <tbody>
-            {{range .words}}
+            {{range $words}}
             <tr hx-get="/dictionary/{{.}}" hx-target="body" hx-vals='{"previous_page": "/dictionary"}'>
                 <td>{{.}}</td>
             </tr>
             {{end}}
         </tbody>
     </table>
-    <!-- TODO -->
-    <!-- <button>Синхронизация с AnkiWeb</button> -->
+    {{end}}
 </body>

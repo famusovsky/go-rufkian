@@ -1,6 +1,7 @@
 package dictionary
 
 import (
+	"bytes"
 	"errors"
 	"regexp"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
 	"github.com/famusovsky/go-rufkian/internal/companion/render"
+	"github.com/famusovsky/go-rufkian/pkg/apkg"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -40,6 +42,13 @@ func (h *handlers) DictionaryPage(c *fiber.Ctx) error {
 	words, err := h.dbClient.GetUserWords(user.ID)
 	if err != nil {
 		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+	}
+
+	if len(words) == 0 {
+		return c.Render("dictionary", fiber.Map{
+			"empty":          true,
+			"showCallButton": string(c.Context().UserAgent()) == "rufkian", // TODO move somewhere else
+		}, "layouts/base")
 	}
 
 	return c.Render("dictionary", fiber.Map{
@@ -97,4 +106,31 @@ func (h *handlers) DeleteWord(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *handlers) GetApkg(c *fiber.Ctx) error {
+	errWrap := errors.New("error while exporting user's dictionary to apkg")
+
+	user, _ := middleware.UserFromCtx(c)
+
+	words, err := h.dbClient.GetUserWords(user.ID)
+	if err != nil {
+		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+	}
+
+	notes := make([]apkg.SimpleNote, 0, len(words))
+	for _, word := range words {
+		notes = append(notes, apkg.SimpleNote{
+			Front: word,
+			Back:  "default back", // TODO
+		})
+	}
+
+	res, err := apkg.Convert(apkg.NewSimpleAnki(notes))
+	if err != nil {
+		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+	}
+
+	c.Response().Header.Add(fiber.HeaderContentDisposition, `attachment; filename="rufkian.apkg"`)
+	return c.SendStream(bytes.NewReader(res))
 }

@@ -8,4 +8,6 @@ type IHandlers interface {
 
 	DictionaryPage(c *fiber.Ctx) error
 	WordPage(c *fiber.Ctx) error
+
+	GetApkg(c *fiber.Ctx) error
 }

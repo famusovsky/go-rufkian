@@ -179,7 +179,7 @@ const (
     "1": {
         "id": 1,
         "mod": 0,
-        "name": "Default",
+        "name": "rufkian Dictionary",
         "usn": 0,
         "maxTaken": 60,
         "autoplay": true,
