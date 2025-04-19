@@ -66,3 +66,164 @@ var tables = map[string][]string{
 		"type",    // integer not null, 0=learn, 1=review, 2=relearn, 3=filtered, 4=manual, 5=rescheduled
 	},
 }
+
+const (
+	defaultColConf = `{
+	"dueCounts": true,
+	"addToCur": true,
+	"estTimes": true,
+	"collapseTime": 1200,
+	"creationOffset": -180,
+	"timeLim": 0,
+	"nextPos": 1,
+	"sortType": "noteFld",
+    "curDeck": 1,
+    "dayLearnFirst": false,
+    "curModel": 1,
+    "newSpread": 0,
+    "schedVer": 2,
+    "sortBackwards": false,
+    "activeDecks": [
+        1
+    ]
+}`
+	defaultColModels = `{
+	"1": {
+        "id": 1,
+        "name": "Basic",
+        "type": 0,
+        "mod": 0,
+        "usn": 0,
+        "sortf": 0,
+        "did": null,
+        "tmpls": [
+            {
+                "name": "Card 1",
+                "ord": 0,
+                "qfmt": "{{Front}}",
+                "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}",
+                "bqfmt": "",
+                "bafmt": "",
+                "did": null,
+                "bfont": "",
+                "bsize": 0
+            }
+        ],
+        "flds": [
+            {
+                "name": "Front",
+                "ord": 0,
+                "sticky": false,
+                "rtl": false,
+                "font": "Arial",
+                "size": 20,
+                "description": ""
+            },
+            {
+                "name": "Back",
+                "ord": 1,
+                "sticky": false,
+                "rtl": false,
+                "font": "Arial",
+                "size": 20,
+                "description": ""
+            }
+        ],
+        "css": ".card {\n  font-family: arial;\n  font-size: 20px;\n  text-align: center;\n  color: black;\n  background-color: white;\n}\n",
+        "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+        "latexPost": "\\end{document}",
+        "latexsvg": false,
+        "req": [
+            [
+                0,
+                "any",
+                [
+                    0
+                ]
+            ]
+        ]
+    }
+}`
+	defaultColDecks = `{
+     "1": {
+        "id": 1,
+        "mod": 0,
+        "name": "rufkian Dictionary",
+        "usn": 0,
+        "lrnToday": [
+            0,
+            0
+        ],
+        "revToday": [
+            0,
+            0
+        ],
+        "newToday": [
+            0,
+            0
+        ],
+        "timeToday": [
+            0,
+            0
+        ],
+        "collapsed": true,
+        "browserCollapsed": true,
+        "desc": "",
+        "dyn": 0,
+        "conf": 1,
+        "extendNew": 0,
+        "extendRev": 0
+	}
+}`
+	defaultColDConf = `{
+    "1": {
+        "id": 1,
+        "mod": 0,
+        "name": "Default",
+        "usn": 0,
+        "maxTaken": 60,
+        "autoplay": true,
+        "timer": 0,
+        "replayq": true,
+        "new": {
+            "bury": false,
+            "delays": [
+                1,
+                10
+            ],
+            "initialFactor": 2500,
+            "ints": [
+                1,
+                4,
+                0
+            ],
+            "order": 1,
+            "perDay": 20
+        },
+        "rev": {
+            "bury": false,
+            "ease4": 1.3,
+            "ivlFct": 1,
+            "maxIvl": 36500,
+            "perDay": 200,
+            "hardFactor": 1.2
+        },
+        "lapse": {
+            "delays": [
+                10
+            ],
+            "leechAction": 1,
+            "leechFails": 8,
+            "minInt": 1,
+            "mult": 0
+        },
+        "dyn": false,
+        "newMix": 0,
+        "newPerDayMinimum": 0,
+        "interdayLearningMix": 0,
+        "reviewOrder": 0,
+        "newSortOrder": 0,
+        "newGatherPriority": 0
+    }
+}`
+)

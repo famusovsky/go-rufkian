@@ -2,6 +2,8 @@ package apkg
 
 import (
 	"fmt"
+	"math/rand/v2"
+	"strconv"
 	"time"
 )
 
@@ -16,16 +18,19 @@ func NewSimpleAnki(notes []SimpleNote) Anki2 {
 	}
 
 	now := time.Now()
+	unix := int(now.Unix())
+	unixMilli := int(now.UnixMilli())
+
 	res.Col = Col{
 		ID:     1,
-		Crt:    int(now.Unix()),
-		Mod:    int(now.UnixMilli()),
-		Scm:    int(now.UnixMilli()),
-		Ver:    1,
-		Conf:   "", // FIXME
-		Models: "", // FIXME
-		Decks:  "", // FIXME
-		Dconf:  "", // FIXME
+		Crt:    unix,
+		Mod:    unixMilli,
+		Scm:    unixMilli,
+		Ver:    11,
+		Conf:   defaultColConf,
+		Models: defaultColModels,
+		Decks:  defaultColDecks,
+		Dconf:  defaultColDConf,
 		Tags:   "{}",
 	}
 
@@ -33,21 +38,21 @@ func NewSimpleAnki(notes []SimpleNote) Anki2 {
 	res.Cards = make([]Card, 0, len(notes))
 	for i, note := range notes {
 		res.Notes = append(res.Notes, Note{
-			ID:   int(now.UnixMilli()) + i,
-			Guid: "", // FIXME
-			Mid:  0,  // FIXME
-			Mod:  int(now.Unix()),
-			Usn:  -1,                                             // FIXME
-			Flds: fmt.Sprintf("%s\x1f%s", note.Front, note.Back), // FIXME
-			Csum: 0,                                              //FIXME
+			ID:   unixMilli + i,
+			Guid: strconv.Itoa(rand.Int()),
+			Mid:  1,
+			Mod:  unix,
+			Usn:  unixMilli,
+			Flds: fmt.Sprintf("%s\x1f%s", note.Front, note.Back),
+			Csum: unixMilli,
 		})
 
 		res.Cards = append(res.Cards, Card{
-			ID:  int(now.UnixMilli()) + i,
+			ID:  unixMilli + i,
 			Nid: res.Notes[i].ID,
-			Mod: int(now.Unix()),
-			Did: 0,  // FIXME
-			Usn: -1, // FIXME
+			Mod: unix,
+			Did: 1,
+			Usn: unixMilli,
 			Due: i,
 		})
 	}
@@ -92,10 +97,6 @@ func (a2 *Anki2) GetTable(table string) [][]any {
 	}
 
 	return rows
-}
-
-type row interface {
-	toRow() []any
 }
 
 // Card represents a row in the cards table
