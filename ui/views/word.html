@@ -1,10 +1,13 @@
 <body>
-  {{if eq .previousPage "" | not}}
-  <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
-  {{end}}
+  <p style="text-align: center;">Информация получена на <b>www.woerter.net</b></p>
   <!-- TODO if the word is not on woerter do not show buttons and show err -->
-  <button class="toggle-word" hx-delete="/dictionary/{{.word}}" {{if not .inDictionary}}hidden=""{{end}}>Удалить из словаря</button>
-  <button class="toggle-word" hx-post="/dictionary/{{.word}}" {{if .inDictionary}}hidden=""{{end}}>Добавить в словарь</button>
+  <form>
+    {{if eq .previousPage "" | not}}
+    <button hx-get="{{.previousPage}}" hx-target="body">Вернуться назад</button>
+    {{end}}
+    <button class="toggle-word" hx-delete="/dictionary/{{.word}}" {{if not .inDictionary}}hidden=""{{end}}>Удалить из словаря</button>
+    <button class="toggle-word" hx-post="/dictionary/{{.word}}" {{if .inDictionary}}hidden=""{{end}}>Добавить в словарь</button>
+  </form>
   <div id="result"></div>
   <div hx-get="/proxy/woerter/{{.word}}" hx-target="this" hx-trigger="load"></div>
   <script>
