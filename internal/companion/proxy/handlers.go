@@ -1,10 +1,12 @@
 package proxy
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
 
+	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"golang.org/x/net/html"
@@ -13,12 +15,14 @@ import (
 
 type handlers struct {
 	restyClient *resty.Client
+	dbClient    database.IClient
 	logger      *zap.Logger
 }
 
-func NewHandlers(logger *zap.Logger) IHandlers {
+func NewHandlers(logger *zap.Logger, dbClient database.IClient) IHandlers {
 	return &handlers{
 		restyClient: resty.New(),
+		dbClient:    dbClient,
 		logger:      logger,
 	}
 }
@@ -36,8 +40,6 @@ func (h *handlers) Woerter(c *fiber.Ctx) error {
 	}
 
 	if r.IsSuccess() {
-		// TODO add close, addToDictionary/RemoveFromDictionary buttons
-
 		page, err := html.Parse(r.Body)
 		defer r.Body.Close()
 
@@ -52,8 +54,10 @@ func (h *handlers) Woerter(c *fiber.Ctx) error {
 			return c.SendStatus(fiber.StatusNotFound)
 		}
 
-		removeExcessiveHighChildren(definition)
-		cleanInsides(definition)
+		processor := newProcessor(h.dbClient, h.logger)
+		processor.process(definition)
+
+		go processor.storeWord(q)
 
 		err = html.Render(c, definition)
 
@@ -90,7 +94,26 @@ func findArticle(n *html.Node) *html.Node {
 	return res
 }
 
-func removeExcessiveHighChildren(n *html.Node) {
+type processor struct {
+	translations *sync.Map
+	dbClient     database.IClient
+	logger       *zap.Logger
+}
+
+func newProcessor(dbClient database.IClient, logger *zap.Logger) processor {
+	return processor{
+		translations: new(sync.Map),
+		dbClient:     dbClient,
+		logger:       logger,
+	}
+}
+
+func (p *processor) process(n *html.Node) {
+	p.removeExcessiveHighChildren(n)
+	p.updateInsides(n)
+}
+
+func (p *processor) removeExcessiveHighChildren(n *html.Node) {
 	excessiveHighNodes := []*html.Node{}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		var ok bool
@@ -109,7 +132,7 @@ func removeExcessiveHighChildren(n *html.Node) {
 	}
 }
 
-func cleanInsides(n *html.Node) {
+func (p *processor) updateInsides(n *html.Node) {
 	wg := sync.WaitGroup{}
 	var f func(*html.Node)
 	f = func(n *html.Node) {
@@ -121,7 +144,7 @@ func cleanInsides(n *html.Node) {
 
 		toExclude := []*html.Node{}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			if checkIfMustExcludeNode(c) {
+			if p.checkIfMustExcludeNode(c) {
 				toExclude = append(toExclude, c)
 			} else {
 				wg.Add(1)
@@ -145,7 +168,7 @@ func cleanInsides(n *html.Node) {
 	wg.Wait()
 }
 
-func checkIfMustExcludeNode(n *html.Node) bool {
+func (p *processor) checkIfMustExcludeNode(n *html.Node) bool {
 	if n.FirstChild == nil && n.Type == html.TextNode && (n.Data == "\n" || n.Data == "") {
 		return true
 	}
@@ -160,11 +183,49 @@ func checkIfMustExcludeNode(n *html.Node) bool {
 				}
 			}
 		}
-		if attr.Key == "lang" && !slices.Contains(languagesToSave, attr.Val) {
-			return true
+		if attr.Key == "lang" {
+			if slices.Contains(languagesToSave, attr.Val) {
+				var translation string
+				wg := sync.WaitGroup{}
+				var f func(n *html.Node)
+				f = func(n *html.Node) {
+					defer wg.Done()
+					if len(n.Data) > 0 && n.Data != "span" && n.Data != "dd" && n.Data != "img" {
+						translation += n.Data
+					}
+					for c := n.FirstChild; c != nil; c = c.NextSibling {
+						wg.Add(1)
+						go f(c)
+					}
+				}
+				wg.Add(1)
+				go f(n)
+				wg.Wait()
+
+				p.translations.Store(attr.Val, translation)
+			} else {
+				return true
+			}
 		}
 	}
 	return false
+}
+
+func (p *processor) storeWord(word string) {
+	var info string
+
+	for _, lang := range languagesToSave {
+		val, ok := p.translations.Load(lang)
+		if ok {
+			info += fmt.Sprintf("<b>%s</b><p>%s</p><br>", languagesNames[lang], val.(string))
+		}
+	}
+
+	if len(info) > 0 {
+		if err := p.dbClient.AddWord(word, info); err != nil {
+			p.logger.Warn("add word from woerter", zap.Error(err))
+		}
+	}
 }
 
 func checkIfMustPopNode(n *html.Node) bool {

@@ -18,5 +18,18 @@ CREATE TABLE IF NOT EXISTS dialogs (
 CREATE TABLE IF NOT EXISTS user_words (
     user_id INTEGER NOT NULL,
     word TEXT NOT NULL,
+    UNIQUE (user_id, word),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+
+CREATE TABLE IF NOT EXISTS words (
+    word TEXT PRIMARY KEY,
+    info TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS dictionaries (
+    user_id INTEGER PRIMARY KEY,
+    hash TEXT NOT NULL,
+    apkg BYTEA NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 )

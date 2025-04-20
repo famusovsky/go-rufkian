@@ -233,3 +233,80 @@ func (c client) DeleteWordFromUser(userID, word string) error {
 	c.logger.Info("delete user word sql query process", zap.String("user_id", userID), zap.String("word", word))
 	return nil
 }
+
+func (c client) AddWord(word, info string) error {
+	if c.db == nil {
+		c.logger.Error("attempt to store word into nil db")
+		return errNilDB
+	}
+
+	if _, err := c.db.Exec(addWordQuery, word, info); err != nil {
+		c.logger.Error("store word sql query process", zap.String("word", word), zap.Error(err))
+		return err
+	}
+
+	c.logger.Info("store word sql query process", zap.String("word", word))
+	return nil
+}
+
+func (c client) GetWord(word string) (string, error) {
+	if c.db == nil {
+		c.logger.Error("attempt to get word from nil db")
+		return "", errNilDB
+	}
+
+	var info string
+	if err := c.db.QueryRowx(getWordQuery, word).Scan(&info); err != nil {
+		c.logger.Error("get word sql query process", zap.String("word", word))
+		return "", err
+	}
+
+	c.logger.Info("get word sql query process", zap.String("word", word))
+	return info, nil
+}
+
+func (c client) GetDictionary(userID string) (model.Dictionary, error) {
+	if c.db == nil {
+		c.logger.Error("attempt to get dictionary from nil db")
+		return model.Dictionary{}, errNilDB
+	}
+
+	var dictionary model.Dictionary
+	if err := c.db.QueryRowx(getDictionaryQuery, userID).StructScan(&dictionary); err != nil {
+		c.logger.Error("get dictionary sql query process", zap.String("user_id", userID))
+		return model.Dictionary{}, err
+	}
+
+	c.logger.Info("get dictionary sql query process", zap.String("user_id", userID))
+	return dictionary, nil
+}
+
+func (c client) CheckDictionaryNeedUpdate(userID, hash string) (bool, error) {
+	if c.db == nil {
+		c.logger.Error("attempt to get dictionary hash from nil db")
+		return false, errNilDB
+	}
+
+	var dbHash string
+	if err := c.db.QueryRowx(getDictionaryHashQuery, userID).Scan(&dbHash); err != nil {
+		c.logger.Error("get dictionary hash sql query process", zap.String("user_id", userID))
+		return false, err
+	}
+
+	return dbHash != hash, nil
+}
+
+func (c client) UpdateDictionary(dictionary model.Dictionary) error {
+	if c.db == nil {
+		c.logger.Error("attempt to update dictionary in nil db")
+		return errNilDB
+	}
+
+	if _, err := c.db.Exec(updateDictionaryQuery, dictionary.UserID, dictionary.Hash, dictionary.Apkg); err != nil {
+		c.logger.Error("update dictionary sql query process", zap.String("user_id", dictionary.UserID), zap.Error(err))
+		return err
+	}
+
+	c.logger.Info("update dictionary sql query process", zap.String("user_id", dictionary.UserID))
+	return nil
+}

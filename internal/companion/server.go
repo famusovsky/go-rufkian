@@ -65,7 +65,7 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr string) (IServer, error) {
 		logger:             logger,
 		authHandlers:       auth.NewHandlers(dbClient, cookieHandler, logger),
 		dialogHandlers:     dialog.NewHandlers(dbClient, logger),
-		proxyHandlers:      proxy.NewHandlers(logger),
+		proxyHandlers:      proxy.NewHandlers(logger, dbClient),
 		dictionaryHandlers: dictionary.NewHandlers(dbClient, logger),
 		userHandlers:       user.NewHandlers(dbClient, logger),
 		keyHandlers:        key.NewHandlers(),

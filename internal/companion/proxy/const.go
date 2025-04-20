@@ -30,7 +30,12 @@ var (
 		"ru", "en",
 
 		// just for fun
-		"uk", "be",
-		"he", "ar",
+		// "uk", "be",
+		// "he", "ar",
+	}
+
+	languagesNames = map[string]string{
+		"ru": "Русский",
+		"en": "English",
 	}
 )

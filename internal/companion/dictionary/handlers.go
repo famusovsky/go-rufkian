@@ -2,13 +2,17 @@ package dictionary
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/famusovsky/go-rufkian/internal/companion/database"
 	"github.com/famusovsky/go-rufkian/internal/companion/middleware"
 	"github.com/famusovsky/go-rufkian/internal/companion/render"
+	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/famusovsky/go-rufkian/pkg/apkg"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -115,18 +119,54 @@ func (h *handlers) GetApkg(c *fiber.Ctx) error {
 	if err != nil {
 		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
 	}
+	slices.Sort(words)
 
-	notes := make([]apkg.SimpleNote, 0, len(words))
-	for _, word := range words {
-		notes = append(notes, apkg.SimpleNote{
-			Front: word,
-			Back:  "default back", // TODO
-		})
+	hash := md5.Sum([]byte(strings.Join(words, "")))
+	stringHash := hex.EncodeToString(hash[:])
+	needUpdate, err := h.dbClient.CheckDictionaryNeedUpdate(user.ID, stringHash)
+	if err != nil {
+		h.logger.Error("chech if dictionary needs update", zap.Error(err), zap.String("user_id", user.ID))
+		needUpdate = true
 	}
 
-	res, err := apkg.Convert(apkg.NewSimpleAnki(notes))
-	if err != nil {
-		return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+	var res []byte
+	if !needUpdate {
+		dict, err := h.dbClient.GetDictionary(user.ID)
+		if err != nil {
+			return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+		}
+		res = dict.Apkg
+	} else {
+		notes := make([]apkg.SimpleNote, 0, len(words))
+		for _, word := range words {
+			// TODO do a tx or smth
+			info, err := h.dbClient.GetWord(word)
+			if err != nil {
+				continue
+			}
+
+			notes = append(notes, apkg.SimpleNote{
+				Front: word,
+				Back:  info,
+			})
+		}
+
+		converted, err := apkg.Convert(apkg.NewSimpleAnki(notes))
+		if err != nil {
+			return render.ErrPage(c, fiber.StatusNotFound, errors.Join(errWrap, err))
+		}
+		res = converted
+
+		go func() {
+			dict := model.Dictionary{
+				UserID: user.ID,
+				Hash:   stringHash,
+				Apkg:   res,
+			}
+			if err := h.dbClient.UpdateDictionary(dict); err != nil {
+				h.logger.Error("update user's dictionary", zap.Error(err), zap.String("user_id", user.ID))
+			}
+		}()
 	}
 
 	c.Response().Header.Add(fiber.HeaderContentDisposition, `attachment; filename="rufkian.apkg"`)

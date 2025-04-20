@@ -20,4 +20,11 @@ const (
 	getUserWordsQuery       = `SELECT word FROM user_words WHERE user_id = $1;`
 	checkUserWordQuery      = `SELECT COUNT(*) > 0 FROM user_words WHERE user_id = $1 AND word = $2;`
 	deleteWordFromUserQuery = `DELETE FROM user_words WHERE user_id = $1 AND word = $2;`
+
+	addWordQuery = `INSERT INTO words (word, info) VALUES ($1, $2);`
+	getWordQuery = `SELECT info FROM words WHERE word = $1;`
+
+	getDictionaryQuery     = `SELECT * FROM dictionaries WHERE user_id = $1;`
+	getDictionaryHashQuery = `SELECT hash FROM dictionaries WHERE user_id = $1;`
+	updateDictionaryQuery  = `UPDATE dictionaries SET hash = $2, apkg = $3 WHERE user_id = $1;`
 )
