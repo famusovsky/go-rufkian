@@ -21,7 +21,7 @@
         {{embed}}
     </main>
     {{if .rufkian}}
-    <footer style="position:fixed; bottom:0; width: 100%;">
+    <footer style="position:fixed; bottom:0; width: 100%; background-color: transparent;">
         <nav>
             <form>
             <button {{if .userHasKey}}formaction="/call"{{else}}hx-get="/key/insert" hx-target="body"{{end}}>

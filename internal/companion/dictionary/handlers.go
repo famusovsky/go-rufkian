@@ -184,3 +184,7 @@ func (h *handlers) GetApkg(c *fiber.Ctx) error {
 	c.Response().Header.Add(fiber.HeaderContentDisposition, `attachment; filename="rufkian.apkg"`)
 	return c.SendStream(bytes.NewReader(res))
 }
+
+func (h *handlers) ApkgInstructionPage(c *fiber.Ctx) error {
+	return c.Render("instructionApkg", fiber.Map{}, "layouts/base")
+}

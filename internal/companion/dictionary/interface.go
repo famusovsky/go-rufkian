@@ -10,4 +10,5 @@ type IHandlers interface {
 	WordPage(c *fiber.Ctx) error
 
 	GetApkg(c *fiber.Ctx) error
+	ApkgInstructionPage(c *fiber.Ctx) error
 }

@@ -3,7 +3,10 @@
     {{if .empty}}
     <p>Словарь пуст</p>
     {{else}}
-    <a class="button-like" style="text-decoration:none" href="/dictionary/apkg" download>Экспортировать для Anki</a>
+    <nav>
+        <a class="button-like" style="text-decoration:none" href="/dictionary/apkg" download>Экспортировать для Anki</a>
+        <button hx-get="/dictionary/apkg/instruction" hx-target="body">?</button>
+    </nav>
     <table>
         <tbody>
             {{range $words}}

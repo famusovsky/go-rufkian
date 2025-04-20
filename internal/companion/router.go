@@ -49,9 +49,9 @@ func (s *server) initRouter() {
 	dictionary := withUser.Group("/dictionary")
 	dictionary.Get("/", s.dictionaryHandlers.DictionaryPage)
 	dictionary.Get("/apkg", s.dictionaryHandlers.GetApkg)
+	dictionary.Get("/apkg/instruction", s.dictionaryHandlers.ApkgInstructionPage)
 	// TODO save word in context (or make add/delete better)
 	word := dictionary.Group("/:word<string>")
-
 	word.Get("/", s.dictionaryHandlers.WordPage)
 	word.Post("/", s.dictionaryHandlers.AddWord)
 	word.Delete("/", s.dictionaryHandlers.DeleteWord)
