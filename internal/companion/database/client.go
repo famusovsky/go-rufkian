@@ -234,13 +234,13 @@ func (c client) DeleteWordFromUser(userID, word string) error {
 	return nil
 }
 
-func (c client) AddWord(word, info string) error {
+func (c client) AddWord(word, info, translation string) error {
 	if c.db == nil {
 		c.logger.Error("attempt to store word into nil db")
 		return errNilDB
 	}
 
-	if _, err := c.db.Exec(addWordQuery, word, info); err != nil {
+	if _, err := c.db.Exec(addWordQuery, word, info, translation); err != nil {
 		c.logger.Error("store word sql query process", zap.String("word", word), zap.Error(err))
 		return err
 	}
@@ -249,20 +249,20 @@ func (c client) AddWord(word, info string) error {
 	return nil
 }
 
-func (c client) GetWord(word string) (string, error) {
+func (c client) GetWordInfoAndTranslation(word string) (string, string, error) {
 	if c.db == nil {
 		c.logger.Error("attempt to get word from nil db")
-		return "", errNilDB
+		return "", "", errNilDB
 	}
 
-	var info string
-	if err := c.db.QueryRowx(getWordQuery, word).Scan(&info); err != nil {
+	var info, translation string
+	if err := c.db.QueryRowx(getWordQuery, word).Scan(&info, &translation); err != nil {
 		c.logger.Error("get word sql query process", zap.String("word", word))
-		return "", err
+		return "", "", err
 	}
 
 	c.logger.Info("get word sql query process", zap.String("word", word))
-	return info, nil
+	return info, translation, nil
 }
 
 func (c client) GetDictionary(userID string) (model.Dictionary, error) {

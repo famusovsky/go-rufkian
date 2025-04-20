@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS user_words (
 
 CREATE TABLE IF NOT EXISTS words (
     word TEXT PRIMARY KEY,
-    info TEXT NOT NULL
+    info TEXT NOT NULL,
+    translation TEXT NOT NULL
 )
 
 CREATE TABLE IF NOT EXISTS dictionaries (

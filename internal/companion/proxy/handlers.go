@@ -1,7 +1,9 @@
 package proxy
 
 import (
+	"bytes"
 	"fmt"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -28,9 +30,13 @@ func NewHandlers(logger *zap.Logger, dbClient database.IClient) IHandlers {
 }
 
 func (h *handlers) Woerter(c *fiber.Ctx) error {
-	q := c.Params("q")
-	if q == "" {
+	q, err := url.QueryUnescape(c.Params("q"))
+	if len(q) == 0 || err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	if info, _, err := h.dbClient.GetWordInfoAndTranslation(q); err == nil && len(info) > 0 {
+		return c.SendString(info)
 	}
 
 	r, err := h.restyClient.R().Get(woerterURL + q)
@@ -57,7 +63,7 @@ func (h *handlers) Woerter(c *fiber.Ctx) error {
 		processor := newProcessor(h.dbClient, h.logger)
 		processor.process(definition)
 
-		go processor.storeWord(q)
+		go processor.storeWord(q, definition)
 
 		err = html.Render(c, definition)
 
@@ -211,18 +217,22 @@ func (p *processor) checkIfMustExcludeNode(n *html.Node) bool {
 	return false
 }
 
-func (p *processor) storeWord(word string) {
-	var info string
+func (p *processor) storeWord(word string, n *html.Node) {
+	var translation string
 
 	for _, lang := range languagesToSave {
 		val, ok := p.translations.Load(lang)
 		if ok {
-			info += fmt.Sprintf("<b>%s</b><p>%s</p><br>", languagesNames[lang], val.(string))
+			translation += fmt.Sprintf("<b>%s</b><p>%s</p><br>", languagesNames[lang], val.(string))
 		}
 	}
 
-	if len(info) > 0 {
-		if err := p.dbClient.AddWord(word, info); err != nil {
+	var b bytes.Buffer
+	html.Render(&b, n)
+	info := b.String()
+
+	if len(info) > 0 && len(translation) > 0 {
+		if err := p.dbClient.AddWord(word, info, translation); err != nil {
 			p.logger.Warn("add word from woerter", zap.Error(err))
 		}
 	}

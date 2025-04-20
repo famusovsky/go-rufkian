@@ -16,8 +16,8 @@ type IClient interface {
 	CheckUserWord(userID string, word string) (bool, error)
 	DeleteWordFromUser(userID, word string) error
 
-	AddWord(word, info string) error
-	GetWord(word string) (string, error)
+	AddWord(word, info, translation string) error
+	GetWordInfoAndTranslation(word string) (string, string, error)
 
 	GetDictionary(userID string) (model.Dictionary, error)
 	CheckDictionaryNeedUpdate(userID, hash string) (bool, error)

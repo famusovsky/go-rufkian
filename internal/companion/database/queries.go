@@ -21,8 +21,8 @@ const (
 	checkUserWordQuery      = `SELECT COUNT(*) > 0 FROM user_words WHERE user_id = $1 AND word = $2;`
 	deleteWordFromUserQuery = `DELETE FROM user_words WHERE user_id = $1 AND word = $2;`
 
-	addWordQuery = `INSERT INTO words (word, info) VALUES ($1, $2);`
-	getWordQuery = `SELECT info FROM words WHERE word = $1;`
+	addWordQuery = `INSERT INTO words (word, info, translation) VALUES ($1, $2, $3);`
+	getWordQuery = `SELECT info, translation FROM words WHERE word = $1;`
 
 	getDictionaryQuery     = `SELECT * FROM dictionaries WHERE user_id = $1;`
 	getDictionaryHashQuery = `SELECT hash FROM dictionaries WHERE user_id = $1;`

@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"net/url"
 	"regexp"
 	"slices"
 	"strings"
@@ -28,7 +29,7 @@ func NewHandlers(
 	dbClient database.IClient,
 	logger *zap.Logger,
 ) IHandlers {
-	regular, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	regular, _ := regexp.Compile(`^[a-zA-ZäöüßÄÖÜẞ0-9]+$`)
 	res := &handlers{
 		dbClient: dbClient,
 		logger:   logger,
@@ -61,10 +62,13 @@ func (h *handlers) DictionaryPage(c *fiber.Ctx) error {
 }
 
 func (h *handlers) WordPage(c *fiber.Ctx) error {
-	word := c.Params("word", "deutsch")
+	word, err := url.QueryUnescape(c.Params("word"))
+	if len(word) == 0 || err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 	previousPage := c.Query("previous_page")
 
-	word = h.regular.ReplaceAllString(word, "")
+	// word = h.regular.ReplaceAllString(word, "")
 	word = strings.ToLower(word)
 	h.logger.Info("word", zap.String("w", word))
 
@@ -83,7 +87,11 @@ func (h *handlers) WordPage(c *fiber.Ctx) error {
 }
 
 func (h *handlers) AddWord(c *fiber.Ctx) error {
-	word := c.Params("word")
+	word, err := url.QueryUnescape(c.Params("word"))
+	if len(word) == 0 || err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
 	user, ok := middleware.UserFromCtx(c)
 	if !ok || word == "" {
 		return render.ErrToResult(c, fiber.ErrBadRequest)
@@ -97,7 +105,11 @@ func (h *handlers) AddWord(c *fiber.Ctx) error {
 }
 
 func (h *handlers) DeleteWord(c *fiber.Ctx) error {
-	word := c.Params("word")
+	word, err := url.QueryUnescape(c.Params("word"))
+	if len(word) == 0 || err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
 	user, ok := middleware.UserFromCtx(c)
 	if !ok || word == "" {
 		return render.ErrToResult(c, fiber.ErrBadRequest)
@@ -140,14 +152,14 @@ func (h *handlers) GetApkg(c *fiber.Ctx) error {
 		notes := make([]apkg.SimpleNote, 0, len(words))
 		for _, word := range words {
 			// TODO do a tx or smth
-			info, err := h.dbClient.GetWord(word)
+			_, translation, err := h.dbClient.GetWordInfoAndTranslation(word)
 			if err != nil {
 				continue
 			}
 
 			notes = append(notes, apkg.SimpleNote{
 				Front: word,
-				Back:  info,
+				Back:  translation,
 			})
 		}
 
