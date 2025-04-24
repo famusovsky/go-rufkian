@@ -1,0 +1,66 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: postgres_pswd
+      POSTGRES_DB: postgres_db
+      POSTGRES_USER: postgres_user
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  companion:
+    container_name: rufkian-companion
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres_user
+      - DB_PASSWORD=postgres_pswd
+      - DB_NAME=postgres_db
+      - DB_PORT=${DB_PORT}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - port=${COMPANION_PORT}
+        - db_with_ssl=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${COMPANION_PORT}:${COMPANION_PORT}"
+
+  telephonist:
+    container_name: rufkian-telephonist
+    environment:
+      - COMPANION_URL=companion
+      - DB_HOST=postgres
+      - DB_USER=postgres_user
+      - DB_PASSWORD=postgres_pswd
+      - DB_NAME=postgres_db
+      - DB_PORT=${DB_PORT}
+      - YA_FOLDER_ID=${YA_FOLDER_ID}
+      - YA_TRANSLATE_KEY=${YA_TRANSLATE_KEY}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - service=telephonist
+        - port=${TELEPHONIST_PORT}
+        - db_with_ssl=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${TELEPHONIST_PORT}:${TELEPHONIST_PORT}"
+
+volumes:
+  db_data:
+

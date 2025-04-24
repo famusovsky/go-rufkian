@@ -20,4 +20,4 @@ go.work
 .env
 
 # Scripts
-*scripts
+*scripts/
