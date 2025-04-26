@@ -101,7 +101,7 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	})
 
 	day := 24 * time.Hour
-	positiveStreak := 0
+	lastStreak := make(map[time.Time]struct{})
 	streakCancelled := false
 	currentTime := time.Now().UTC().Truncate(day)
 	dialogViews := make([]dialogView, 0, len(dialogs))
@@ -112,11 +112,11 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 		}
 
 		if !streakCancelled {
-			dialogTime := dialog.StartTime.UTC().Truncate(day)
-			timeDiff := currentTime.Sub(dialogTime)
+			dialogTime := dialog.StartTime.Truncate(day)
+			timeDiff := currentTime.Truncate(day).Sub(dialogTime)
 			if timeDiff <= day && (!user.HasTimeGoal() || dialog.DurationS/60 >= *user.TimeGoalM) {
 				currentTime = dialogTime
-				positiveStreak++
+				lastStreak[currentTime] = struct{}{}
 			} else {
 				streakCancelled = true
 			}
@@ -134,6 +134,6 @@ func (h *handlers) HistoryPage(c *fiber.Ctx) error {
 	return c.Render("history", fiber.Map{
 		"dialogs":      dialogViews,
 		"userHasKey":   user.HasKey(),
-		"daysWithGoal": positiveStreak,
+		"daysWithGoal": len(lastStreak),
 	}, "layouts/base")
 }
