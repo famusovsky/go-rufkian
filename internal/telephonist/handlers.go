@@ -2,6 +2,7 @@ package telephonist
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/famusovsky/go-rufkian/internal/model"
 	"github.com/gofiber/fiber/v2"
@@ -24,9 +25,17 @@ func (s *server) Post(c *fiber.Ctx) error {
 	if err != nil {
 		s.logger.Error("parse post request payload", zap.Error(err), zap.ByteString("payload", c.Body()))
 		err = model.ErrWrongBodyFormat
-	} else if payload.Input == nil {
+	}
+
+	if payload.Input == nil {
 		err = errors.Join(err, model.ErrEmptyInput)
 	}
+
+	trimmed := strings.Trim(*payload.Input, " ")
+	if len(trimmed) == 0 {
+		err = errors.Join(err, model.ErrEmptyInput)
+	}
+	payload.Input = &trimmed
 
 	if err != nil {
 		s.logger.Info("post request payload", zap.Error(err))
