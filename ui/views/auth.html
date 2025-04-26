@@ -1,15 +1,13 @@
-<div id="page">
-    <h1>Авторизация</h1>
+<h1>Авторизация</h1>
 
-    <body>
-        <form hx-include="find input">
-            <label for="email">Электронная почта</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">Пароль</label>
-            <input type="password" id="password" name="password" required>
-            <button class="filled-button" hx-post="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Зарегистрироваться</button>
-            <button class="filled-button" hx-put="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Войти</button>
-            <p id="result"></p>
-        </form>
-    </body>
-</div>
+<body>
+    <form hx-include="find input">
+        <label for="email">Электронная почта</label>
+        <input type="email" id="email" name="email" required>
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required>
+        <button class="filled-button" hx-post="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Зарегистрироваться</button>
+        <button class="filled-button" hx-put="/auth" hx-include="[name='email'],[name='password']" hx-target="#result">Войти</button>
+        <p id="result"></p>
+    </form>
+</body>
