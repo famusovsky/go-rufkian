@@ -40,7 +40,7 @@ services:
   telephonist:
     container_name: rufkian-telephonist
     environment:
-      - COMPANION_URL=companion
+      - COMPANION_URL=http://companion:${COMPANION_PORT}
       - DB_HOST=postgres
       - DB_USER=postgres_user
       - DB_PASSWORD=postgres_pswd

@@ -34,7 +34,7 @@ func New(db sqlx.Ext, logger *zap.Logger, translator translator.IClient) IContro
 			SetAllowMethodGetPayload(true).
 			SetContentLength(true).
 			SetBaseURL(mistralChatCompletionsURL).
-			SetTimeout(10 * time.Second),
+			SetTimeout(20 * time.Second),
 		logger:     logger,
 		translator: translator,
 	}
