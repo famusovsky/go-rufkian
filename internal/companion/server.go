@@ -25,12 +25,12 @@ type server struct {
 	dbClient      database.IClient
 	cookieHandler cookie.IHandler
 
-	dialogHandlers     dialogHandlers
-	authHandlers       authHandlers
-	proxyHandlers      proxyHandlers
-	dictionaryHandlers dictionaryHandlers
-	userHandlers       userHandlers
-	keyHandlers        keyHandlers
+	dialogHandlers     dialog.IHandlers
+	authHandlers       auth.IHandlers
+	proxyHandlers      proxy.IHandlers
+	dictionaryHandlers dictionary.IHandlers
+	userHandlers       user.IHandlers
+	keyHandlers        key.IHandlers
 }
 
 // TODO instead of addr, input a normal config

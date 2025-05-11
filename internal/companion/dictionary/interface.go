@@ -2,6 +2,7 @@ package dictionary
 
 import "github.com/gofiber/fiber/v2"
 
+//go:generate mockgen -package dictionary -mock_names IHandlers=HandlersMock -source ./interface.go -typed -destination interface.mock.gen.go
 type IHandlers interface {
 	AddWord(c *fiber.Ctx) error
 	DeleteWord(c *fiber.Ctx) error

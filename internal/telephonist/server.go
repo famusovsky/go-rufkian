@@ -31,7 +31,6 @@ func NewServer(logger *zap.Logger, db sqlx.Ext, addr, companionURL, yaFolderID, 
 					zap.String("method", c.Method()),
 					zap.Error(err),
 				)
-				// TODO more appropriate error
 				return c.SendStatus(fiber.StatusNotFound)
 			},
 		}),

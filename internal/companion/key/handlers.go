@@ -12,6 +12,7 @@ func NewHandlers() IHandlers {
 func (h *handlers) InsertPage(c *fiber.Ctx) error {
 	return c.Render("insertKey", fiber.Map{}, "layouts/base")
 }
+
 func (h *handlers) InstructionPage(c *fiber.Ctx) error {
 	return c.Render("instructionKey", fiber.Map{}, "layouts/base")
 }
